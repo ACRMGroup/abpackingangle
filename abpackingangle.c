@@ -1,5 +1,60 @@
-/* PREVIOUSLY, plot.c */
+/************************************************************************/
+/**
 
+   Program:    abpackingangle
+   \file       abpackingangle.c
+   
+   \version    V1.3
+   \date       03.10.16
+   \brief      Calculate the VH/VL packing angle for an antibody Fv
+   
+   \copyright  (c) UCL / Abhi Raghavan and Dr. Andrew C. R. Martin 2007-16
+   \author     Dr. Abhi Raghavan and Dr. Andrew C. R. Martin
+   \par
+               Institute of Structural & Molecular Biology,
+               University College,
+               Gower Street,
+               London.
+               WC1E 6BT.
+   \par
+               andrew@bioinf.org.uk
+               andrew.martin@ucl.ac.uk
+               
+**************************************************************************
+
+   This program is not in the public domain, but it may be copied
+   according to the conditions laid out in the accompanying file
+   COPYING.DOC
+
+   The code may be modified as required, but any modifications must be
+   documented so that the person responsible can be identified.
+
+   The code may not be sold commercially or included as part of a 
+   commercial product except as described in the file COPYING.DOC.
+
+**************************************************************************
+
+   Description:
+   ============
+
+**************************************************************************
+
+   Usage:
+   ======
+
+**************************************************************************
+
+   Revision History:
+   =================
+   V1.0   02.03.07 Original version By: Abhi
+   V1.1   02.06.16 Split from Abhi's code base  By: ACRM
+   V1.2   03.10.16 Some tidying up and changed to new Bioplib routines
+                   builddist config
+   V1.3   03.10.16 Full tidy up and takes a single PDB file
+
+*************************************************************************/
+/* Includes
+*/
 #include <math.h>
 #include <string.h>
 #include <strings.h>
@@ -12,8 +67,15 @@
 #include "matrix.h"
 #include "regression.h"
 
+/************************************************************************/
+/* Defines and macros
+*/
 #define MAXPOINTS 64
 
+
+/************************************************************************/
+/* Globals
+*/
 static char lightChainFilename[100],
             heavyChainFilename[100];
 
@@ -27,6 +89,15 @@ static char **lightChainConstantPositionsList=NULL,
             **heavyChainConstantPositionsList=NULL;
 
 static char outputFilename[100];
+
+/************************************************************************/
+/* Prototypes
+*/
+
+/************************************************************************/
+
+
+
 
 
 /* ---------------------------- LIST OF FUNCTIONS -------------------------------

@@ -1,5 +1,5 @@
-EXE     = calculate_torsion_angle
-OFILES  = calculate_torsion_angle.o regression.o matrix.o arrays.o
+EXE     = abpackingangle
+OFILES  = abpackingangle.o regression.o matrix.o arrays.o
 COPT    = -g -Wall -ansi 
 INCLUDE = $(HOME)/include
 LIB     = $(HOME)/lib

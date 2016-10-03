@@ -1,5 +1,5 @@
-EXE = calculate_torsion_angle
-OFILES  = calculate_torsion_angle.o regression.o matrix.o arrays.o
+EXE = abpackingangle
+OFILES  = abpackingangle.o regression.o matrix.o arrays.o
 CC = gcc -Wno-unused-function
 LFILES = bioplib/ReadPDB.o bioplib/fsscanf.o bioplib/pldist.o \
          bioplib/FindNextResidue.o bioplib/FreeStringList.o \

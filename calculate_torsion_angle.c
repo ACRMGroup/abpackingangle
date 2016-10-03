@@ -1,19 +1,18 @@
 /* PREVIOUSLY, plot.c */
 
-# include <string.h>
-# include <strings.h>
-# include <unistd.h>
-# include <ctype.h>
-# include <stdlib.h>
-# include <math.h>
+#include <math.h>
+#include <string.h>
+#include <strings.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <stdlib.h>
 
-# include "bioplib/angle.h"
-# include "bioplib/MathUtil.h"
-# include "tgmath.h"
-# include "matrix.h"
-# include "regression.h"
+#include "bioplib/angle.h"
+#include "bioplib/MathUtil.h"
+#include "matrix.h"
+#include "regression.h"
 
-# define MAXPOINTS 64
+#define MAXPOINTS 64
 
 static char lightChainFilename[100],
             heavyChainFilename[100];
@@ -343,14 +342,14 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
    point[1]=lightChainCentroid[1] + (100 * lightChainVector[1]);
    point[2]=lightChainCentroid[2] + (100 * lightChainVector[2]);
 
-   /* Step 3: Find the point of projection on the light chain. We use the function PointLineDistance
+   /* Step 3: Find the point of projection on the light chain. We use the function blPointLineDistance
 	      to do this. The function syntax is as follows:
 
-	      REAL PointLineDistance(REAL Px, REAL Py, REAL Pz,
-	                             REAL P1x, REAL P1y, REAL P1z,
-	                             REAL P2x, REAL P2y, REAL P2z,
-	                             REAL *Rx, REAL *Ry, REAL *Rz,
-	                             REAL *frac)
+	      REAL blPointLineDistance(REAL Px, REAL Py, REAL Pz,
+	                               REAL P1x, REAL P1y, REAL P1z,
+	                               REAL P2x, REAL P2y, REAL P2z,
+	                               REAL *Rx, REAL *Ry, REAL *Rz,
+	                               REAL *frac)
 
 	      (P1x,P1y,P1z) and (P2x,P2y,P2z) are two points on the line. Point (Px,Py,Pz) is
 	      to be projected onto this line.
@@ -358,7 +357,7 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 
    lightChainProjection=(REAL *)malloc(3 * sizeof(REAL));
 
-   PointLineDistance(lightChainPointToBeProjected[0],lightChainPointToBeProjected[1],lightChainPointToBeProjected[2],
+   blPointLineDistance(lightChainPointToBeProjected[0],lightChainPointToBeProjected[1],lightChainPointToBeProjected[2],
 		     lightChainCentroid[0],lightChainCentroid[1],lightChainCentroid[2],
 		     point[0],point[1],point[2],
 		     &lightChainProjection[0],&lightChainProjection[1],&lightChainProjection[2],
@@ -374,7 +373,7 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 
    heavyChainProjection=(REAL *)malloc(3 * sizeof(REAL));
 
-   PointLineDistance(heavyChainPointToBeProjected[0],heavyChainPointToBeProjected[1],heavyChainPointToBeProjected[2],
+   blPointLineDistance(heavyChainPointToBeProjected[0],heavyChainPointToBeProjected[1],heavyChainPointToBeProjected[2],
                      heavyChainCentroid[0],heavyChainCentroid[1],heavyChainCentroid[2],
                      point[0],point[1],point[2],
                      &heavyChainProjection[0],&heavyChainProjection[1],&heavyChainProjection[2],
@@ -417,23 +416,23 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
    }
 
    /* Step 5: Now that the projected points have been found, find the torsion angle using the
-	      function "phi". The format of the function is as given below:
+	      function "blPhi". The format of the function is as given below:
 
-	      REAL phi(REAL xi,
-	               REAL yi,
-	               REAL zi,
-	               REAL xj,
-	               REAL yj,
-	               REAL zj,
-	               REAL xk,
-	               REAL yk,
-	               REAL zk,
-	               REAL xl,
-	               REAL yl,
-		       REAL zl)
+	      REAL blPhi(REAL xi,
+                         REAL yi,
+                         REAL zi,
+	                 REAL xj,
+	                 REAL yj,
+	                 REAL zj,
+	                 REAL xk,
+	                 REAL yk,
+	                 REAL zk,
+	                 REAL xl,
+	                 REAL yl,
+	    	         REAL zl)
    */
 
-   torsionAngle=phi(lightChainProjection[0],lightChainProjection[1],lightChainProjection[2],
+   torsionAngle=blPhi(lightChainProjection[0],lightChainProjection[1],lightChainProjection[2],
 		    lightChainCentroid[0],lightChainCentroid[1],lightChainCentroid[2],
 		    heavyChainCentroid[0],heavyChainCentroid[1],heavyChainCentroid[2],
    		    heavyChainProjection[0],heavyChainProjection[1],heavyChainProjection[2]);
@@ -485,11 +484,11 @@ void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
    /* Step 2: Read atoms from the light and heavy chain PDB files into two linked lists */
 
    fp=fopen(lightChainFilename,"r");
-   lightFirst=ReadPDB(fp,&lightChainNumberOfAtoms);
+   lightFirst=blReadPDB(fp,&lightChainNumberOfAtoms);
    fclose(fp);
 
    fp=fopen(heavyChainFilename,"r");
-   heavyFirst=ReadPDB(fp,&heavyChainNumberOfAtoms);
+   heavyFirst=blReadPDB(fp,&heavyChainNumberOfAtoms);
    fclose(fp);
 
    /* Step 3: Read the light and heavy chain constant position coordinates for CA atoms
@@ -626,8 +625,8 @@ void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
                            "Y",
                            wfp);
 
-      WritePDB(wfp,lightFirst);
-      WritePDB(wfp,heavyFirst);
+      blWritePDB(wfp,lightFirst);
+      blWritePDB(wfp,heavyFirst);
    }
 
    printf("------------------------------------\n");

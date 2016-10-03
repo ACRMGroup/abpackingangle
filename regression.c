@@ -167,7 +167,7 @@ void draw_regression_line(double **coordinates,
 
    while(p)
    {
-      WritePDBRecord(wfp,p);
+      blWritePDBRecord(wfp,p);
       prev=p;
       p=p->next;
       free(prev);

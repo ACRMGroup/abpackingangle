@@ -1,0 +1,24 @@
+EXE = calculate_torsion_angle
+OFILES  = calculate_torsion_angle.o regression.o matrix.o arrays.o
+CC = gcc -Wno-unused-function
+LFILES = bioplib/ReadPDB.o bioplib/fsscanf.o bioplib/pldist.o \
+         bioplib/FindNextResidue.o bioplib/FreeStringList.o \
+         bioplib/padterm.o bioplib/chindex.o bioplib/StoreString.o \
+         bioplib/WritePDB.o bioplib/phi.o bioplib/FindResidue.o \
+         bioplib/hash.o bioplib/BuildConect.o bioplib/stringutil.o \
+         bioplib/IndexPDB.o bioplib/prime.o bioplib/GetPDBChainLabels.o \
+         bioplib/PDBHeaderInfo.o bioplib/strcatalloc.o bioplib/GetWord.o \
+         bioplib/throne.o bioplib/array2.o bioplib/stringcat.o bioplib/eigen.o
+LOPTS = 
+LIBS  = -lm -lxml2
+COPTS = -ansi -Wall -pedantic -DNODEPRECATION
+
+$(EXE) : $(OFILES) $(LFILES)
+	$(CC) $(LOPTS) -o $@ $(OFILES) $(LFILES) $(LIBS)
+
+.c.o :
+	$(CC) $(COPTS) -o $@ -c $<
+
+clean :
+	\rm $(OFILES) $(LFILES)
+

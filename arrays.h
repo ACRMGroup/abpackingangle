@@ -1,7 +1,6 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include "bioplib/MathType.h"
-# include "standard.h"
 
 #ifndef ARRAYS
 #define ARRAYS

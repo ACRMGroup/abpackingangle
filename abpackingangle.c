@@ -102,7 +102,7 @@ void draw_regression_line(double **coordinates,
 			  int numberOfPoints,
 			  char *chainLabel,
 			  FILE *wfp);
-void plot(char *lightChainFilename, char *heavyChainFilename,
+void plot(FILE *fp1, FILE *fp2,
           FILE *wfp, BOOL displayOutputFlag, BOOL DisplayStatsFlag,
           char **lightChainConstantPositionsList,
           char **heavyChainConstantPositionsList);
@@ -114,7 +114,7 @@ BOOL ParseCommandLine(int argc, char **argv, char *lightFile, char *heavyFile, c
 /************************************************************************/
 int main(int argc,char **argv)
 {
-   FILE *wfp=NULL;
+   FILE *wfp=NULL, *fp1=NULL, *fp2=NULL;
    char LightChainFilename[MAXFILENAME],
         HeavyChainFilename[MAXFILENAME],
         outputFilename[MAXFILENAME],
@@ -180,8 +180,23 @@ int main(int argc,char **argv)
       
    }
 
-   plot(LightChainFilename,HeavyChainFilename,wfp,DisplayOutputFlag, 
-        DisplayStatsFlag,
+   if((fp1=fopen(LightChainFilename, "r"))==NULL)
+   {
+      fprintf(stderr,"Error (abpackingangle) - Can't read PDB file: %s\n",
+              LightChainFilename);
+      return(1);
+   }
+   
+   if((fp2=fopen(HeavyChainFilename, "r"))==NULL)
+   {
+      fprintf(stderr,"Error (abpackingangle) - Can't read PDB file: %s\n",
+              HeavyChainFilename);
+      return(1);
+   }
+   
+
+   plot(fp1, fp2, wfp,
+        DisplayOutputFlag, DisplayStatsFlag,
         lightChainConstantPositionsList,
         heavyChainConstantPositionsList);
 
@@ -622,14 +637,12 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 
 
 /************************************************************************/
-void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp,
+void plot(FILE *fp1, FILE *fp2, FILE *wfp,
           BOOL displayOutputFlag, BOOL DisplayStatsFlag,
           char **lightChainConstantPositionsList,
           char **heavyChainConstantPositionsList)
 {
    /* Step 1: Declare variables to be used in the function. */
-
-   FILE *fp=NULL;
 
    double **modifiedLightCoordinates=NULL,
 	  **modifiedHeavyCoordinates=NULL;
@@ -664,13 +677,9 @@ void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp,
    /* Step 2: Read atoms from the light and heavy chain PDB files into
     * two linked lists */
 
-   fp=fopen(lightChainFilename,"r");
-   lightFirst=blReadPDB(fp,&lightChainNumberOfAtoms);
-   fclose(fp);
+   lightFirst=blReadPDB(fp1,&lightChainNumberOfAtoms);
 
-   fp=fopen(heavyChainFilename,"r");
-   heavyFirst=blReadPDB(fp,&heavyChainNumberOfAtoms);
-   fclose(fp);
+   heavyFirst=blReadPDB(fp2,&heavyChainNumberOfAtoms);
 
    /* Step 3: Read the light and heavy chain constant position
 	      coordinates for CA atoms from the linked lists into

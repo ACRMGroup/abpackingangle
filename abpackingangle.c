@@ -93,61 +93,46 @@ static char outputFilename[100];
 /************************************************************************/
 /* Prototypes
 */
-
-/************************************************************************/
-
-
-
-
-
-/* ---------------------------- LIST OF FUNCTIONS -------------------------------
-
-void get_atom_number_and_insert_code(char *constantPosition,int *atomNumber,char *insertCode
-
-int get_number_of_constant_residue_positions(char **constantPositions)
-
-void free_pointers()
-
-void create_constant_positions_list(char **lightChainConstantPositionsList,
-                                    int *numberOfConstantLightChainPositions,
-                                    char **heavyChainConstantPositionsList,
-                                    int *numberOfConstantHeavyChainPositions)
-
-int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *firstPointer)
-
-double calculate_cosine_from_vectors(double *eigenVector1,         // First Eigen vector
-                                     double *eigenVector2,         // Second Eigen vector.
-                                     int numberOfDimensions,       // Number of dimensions.
-                                     BOOL isUnitVector)            // Whether the eigen vectors are unit vectors.
-
+void get_atom_number_and_insert_code(char *constantPosition,
+                                     int *atomNumber, char *insertCode);
+int get_number_of_constant_residue_positions(char **constantPositions);
+void free_pointers(void);
+void create_constant_positions_list(
+   char **lightChainConstantPositionsList,
+   int *numberOfConstantLightChainPositions,
+   char **heavyChainConstantPositionsList,
+   int *numberOfConstantHeavyChainPositions);
+int read_coordinates(char **chainConstantPositionsList,
+                     double **coordArray, PDB *firstPointer);
+double calculate_cosine_from_vectors(double *eigenVector1,  
+                                     double *eigenVector2,  
+                                     int numberOfDimensions,
+                                     BOOL isUnitVector);
 void draw_regression_line(double **coordinates,
 			  double *eigenVector,
 			  int numberOfPoints,
 			  char *chainLabel,
-			  FILE *wfp)
-
-void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
-
+			  FILE *wfp);
+void plot(char *lightChainFilename, char *heavyChainFilename,
+          FILE *wfp);
 void Usage();
 
-*/
-
-
-/* ----------------------- FUNCTION DEFINITION SECTION -------------------------- */
-
-
-/* void get_atom_number_and_insert_code(char *constantPosition,int *atomNumber,char *insertCode):
-
-   This function parses the constant position code into the constituent position in integer and
-   insert code in string.
+/************************************************************************/
+/*>void get_atom_number_and_insert_code(char *constantPosition,
+                                        int *atomNumber, char *insertCode)
+   -----------------------------------------------------------------------
+*//**
+   This function parses the constant position code into the
+   constituent position in integer and insert code in string.
 
    For example, "L27A" is split into:
 
    *atomNumber=27
    *insertCode=A
 */
-
-void get_atom_number_and_insert_code(char *constantPosition,int *atomNumber,char *insertCode)
+void get_atom_number_and_insert_code(char *constantPosition,
+                                     int *atomNumber,
+                                     char *insertCode)
 {
    char *p=NULL,
 	localConstantPosition[8],
@@ -175,15 +160,17 @@ void get_atom_number_and_insert_code(char *constantPosition,int *atomNumber,char
 
    *atomNumber=atoi(atomNumberString);
 
-} /* End of function "get_atom_number_and_insert_code". */
+} 
 
 
-/* int get_number_of_constant_residue_positions(char **constantPositions):
-
-   This function finds the number of constant residue positions defined in an array.
-   It returns the number of constant residue positions.
+/************************************************************************/
+/*>int get_number_of_constant_residue_positions(char **constantPositions)
+   ----------------------------------------------------------------------
+*//**
+   This function finds the number of constant residue positions
+   defined in an array.  It returns the number of constant residue
+   positions.  
 */
-
 int get_number_of_constant_residue_positions(char **constantPositions)
 {
    int i=0;
@@ -193,21 +180,23 @@ int get_number_of_constant_residue_positions(char **constantPositions)
 
    return i;
 
-} /* End of function "get_number_of_constant_residue_positions". */
+}
 
 
-
-void create_constant_positions_list(char **lightChainConstantPositionsList,
-				    int *numberOfConstantLightChainPositions,
-				    char **heavyChainConstantPositionsList,
-				    int *numberOfConstantHeavyChainPositions)
+/************************************************************************/
+void create_constant_positions_list(
+   char **lightChainConstantPositionsList,
+   int *numberOfConstantLightChainPositions,
+   char **heavyChainConstantPositionsList,
+   int *numberOfConstantHeavyChainPositions)
 {
    int i=0;
 
    /* The constant residue positions are as follows:
-
-      Light chain positions: ["L35","L36","L37","L38"] and ["L85","L86","L87","L88"]
-      Heavy chain positions: ["H36","H37","H38","H39"] and ["H89","H90","H91","H92"]
+      Light chain positions: 
+         ["L35","L36","L37","L38"] and ["L85","L86","L87","L88"]
+      Heavy chain positions: 
+         ["H36","H37","H38","H39"] and ["H89","H90","H91","H92"]
    */
 
    for(i=0;i<9;i++)
@@ -217,7 +206,6 @@ void create_constant_positions_list(char **lightChainConstantPositionsList,
    }
 
    /* Copy light chain constant positions. */
-
    strcpy(lightChainConstantPositionsList[0],"L35");
    strcpy(lightChainConstantPositionsList[1],"L36");
    strcpy(lightChainConstantPositionsList[2],"L37");
@@ -229,7 +217,6 @@ void create_constant_positions_list(char **lightChainConstantPositionsList,
    strcpy(lightChainConstantPositionsList[7],"L85");
 
    /* Copy heavy chain constant positions. */
-
    strcpy(heavyChainConstantPositionsList[0],"H36");
    strcpy(heavyChainConstantPositionsList[1],"H37");
    strcpy(heavyChainConstantPositionsList[2],"H38");
@@ -241,7 +228,6 @@ void create_constant_positions_list(char **lightChainConstantPositionsList,
    strcpy(heavyChainConstantPositionsList[7],"H89");
 
    /* Terminate the two lists. */
-
    if(numberOfConstantLightChainPositions)
       *numberOfConstantLightChainPositions=8;
 
@@ -254,6 +240,7 @@ void create_constant_positions_list(char **lightChainConstantPositionsList,
 } /* End of function "create_constant_positions_list". */
 
 
+/************************************************************************/
 int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *firstPointer)
 {
    int numberOfConstantChainPositions=0,
@@ -265,13 +252,15 @@ int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *
    PDB *p=NULL;
 
    /* Format of function:
-
-      void get_number_of_constant_residue_positions(char **constantPositions)  
+      void get_number_of_constant_residue_positions(
+           char **constantPositions)  
    */
 
-   numberOfConstantChainPositions=get_number_of_constant_residue_positions(chainConstantPositionsList);
+   numberOfConstantChainPositions =
+      get_number_of_constant_residue_positions(chainConstantPositionsList);
 
-   /* Get the X, Y, Z coordinates of the CA atoms in light and heavy chain constant residue list.
+   /* Get the X, Y, Z coordinates of the CA atoms in light and heavy
+    * chain constant residue list.
 
       The format of the PDB structure is:
 
@@ -291,11 +280,12 @@ int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *
       }  PDB;
    */
 
-   for(i=0;i<numberOfConstantChainPositions;i++)
+   for(i=0; i<numberOfConstantChainPositions; i++)
    {
       p=firstPointer;
 
-      get_atom_number_and_insert_code(chainConstantPositionsList[i],&atomNumber1,insertCode1);
+      get_atom_number_and_insert_code(chainConstantPositionsList[i],
+                                      &atomNumber1, insertCode1);
 
       while(p->resnum != atomNumber1)
          p=p->next;
@@ -318,10 +308,22 @@ int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *
 } /* End of function "read_coordinates". */
 
 
-double calculate_cosine_from_vectors(double *vector1,		/* First Vector */
-		  		     double *vector2,		/* Second Vector. */
-				     int numberOfDimensions,	/* Number of dimensions. */
-				     BOOL isUnitVector)		/* Whether the Vectors are unit vectors. */
+/************************************************************************/
+/*>double calculate_cosine_from_vectors(double *vector1,
+                                        double *vector2,
+   	 			        int numberOfDimensions,
+				        BOOL isUnitVector)
+   ------------------------------------------------------------
+*//**
+ \param[in] *vector1            First Vector
+ \param[in] *vector2            Second Vector
+ \param[in] numberOfDimensions  Number of dimensions
+ \param[in] isUnitVector        Whether the Vectors are unit vectors.
+*/
+double calculate_cosine_from_vectors(double *vector1,
+		  		     double *vector2,
+				     int numberOfDimensions,
+				     BOOL isUnitVector)
 {
    double numerator=0,
 	  denominator=1,
@@ -358,10 +360,12 @@ double calculate_cosine_from_vectors(double *vector1,		/* First Vector */
 
    return numerator;
 
-} /* End of function "calculate_cosine_from_vectors". */
+}
 
 
-int verify(double *projection,double *centroid,double *vector,char *string)
+/************************************************************************/
+int verify(double *projection, double *centroid, double *vector,
+           char *string)
 {
    double xc=0,
           yc=0,
@@ -388,6 +392,7 @@ int verify(double *projection,double *centroid,double *vector,char *string)
 }
 
 
+/************************************************************************/
 REAL calculate_torsion_angle(REAL *lightChainVector,
   	  		     REAL *lightChainCentroid,
   			     REAL *lightChainPointToBeProjected,
@@ -405,16 +410,18 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 
    REAL torsionAngle=0;
 
-   /* Step 2: Find two points on the light chain regression line. One of the points (default)
-	      is the centroid. The other point can be calculated the following way.
+   /* Step 2: Find two points on the light chain regression line. One
+	      of the points (default) is the centroid. The other point
+	      can be calculated the following way.
    */
 
    point[0]=lightChainCentroid[0] + (100 * lightChainVector[0]);
    point[1]=lightChainCentroid[1] + (100 * lightChainVector[1]);
    point[2]=lightChainCentroid[2] + (100 * lightChainVector[2]);
 
-   /* Step 3: Find the point of projection on the light chain. We use the function blPointLineDistance
-	      to do this. The function syntax is as follows:
+   /* Step 3: Find the point of projection on the light chain. We use
+	      the function blPointLineDistance to do this. The
+	      function syntax is as follows:
 
 	      REAL blPointLineDistance(REAL Px, REAL Py, REAL Pz,
 	                               REAL P1x, REAL P1y, REAL P1z,
@@ -422,35 +429,51 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 	                               REAL *Rx, REAL *Ry, REAL *Rz,
 	                               REAL *frac)
 
-	      (P1x,P1y,P1z) and (P2x,P2y,P2z) are two points on the line. Point (Px,Py,Pz) is
-	      to be projected onto this line.
+	      (P1x,P1y,P1z) and (P2x,P2y,P2z) are two points on the
+	      line. Point (Px,Py,Pz) is to be projected onto this
+	      line.
    */
 
    lightChainProjection=(REAL *)malloc(3 * sizeof(REAL));
 
-   blPointLineDistance(lightChainPointToBeProjected[0],lightChainPointToBeProjected[1],lightChainPointToBeProjected[2],
-		     lightChainCentroid[0],lightChainCentroid[1],lightChainCentroid[2],
-		     point[0],point[1],point[2],
-		     &lightChainProjection[0],&lightChainProjection[1],&lightChainProjection[2],
-		     NULL);
+   blPointLineDistance(lightChainPointToBeProjected[0],
+                       lightChainPointToBeProjected[1],
+                       lightChainPointToBeProjected[2],
+                       lightChainCentroid[0],
+                       lightChainCentroid[1],
+                       lightChainCentroid[2],
+                       point[0],
+                       point[1],
+                       point[2],
+                       &lightChainProjection[0],
+                       &lightChainProjection[1],
+                       &lightChainProjection[2],
+                       NULL);
 
-   verify(lightChainProjection,lightChainCentroid,lightChainVector,"Light");
+   verify(lightChainProjection, lightChainCentroid,
+          lightChainVector,"Light");
 
    /* Step 4: Perform a similar procedure for the heavy chain. */
-
    point[0]=heavyChainCentroid[0] + (100 * heavyChainVector[0]);
    point[1]=heavyChainCentroid[1] + (100 * heavyChainVector[1]);
    point[2]=heavyChainCentroid[2] + (100 * heavyChainVector[2]);
 
    heavyChainProjection=(REAL *)malloc(3 * sizeof(REAL));
 
-   blPointLineDistance(heavyChainPointToBeProjected[0],heavyChainPointToBeProjected[1],heavyChainPointToBeProjected[2],
-                     heavyChainCentroid[0],heavyChainCentroid[1],heavyChainCentroid[2],
-                     point[0],point[1],point[2],
-                     &heavyChainProjection[0],&heavyChainProjection[1],&heavyChainProjection[2],
-                     NULL);
+   blPointLineDistance(heavyChainPointToBeProjected[0],
+                       heavyChainPointToBeProjected[1],
+                       heavyChainPointToBeProjected[2],
+                       heavyChainCentroid[0],
+                       heavyChainCentroid[1],
+                       heavyChainCentroid[2],
+                       point[0],point[1],point[2],
+                       &heavyChainProjection[0],
+                       &heavyChainProjection[1],
+                       &heavyChainProjection[2],
+                       NULL);
 
-   verify(heavyChainProjection,heavyChainCentroid,heavyChainVector,"Heavy");
+   verify(heavyChainProjection, heavyChainCentroid,
+          heavyChainVector, "Heavy");
 
 
    if(displayStats)
@@ -486,8 +509,9 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
       printf("\n\n");
    }
 
-   /* Step 5: Now that the projected points have been found, find the torsion angle using the
-	      function "blPhi". The format of the function is as given below:
+   /* Step 5: Now that the projected points have been found, find the
+	      torsion angle using the function "blPhi". The format of
+	      the function is as given below:
 
 	      REAL blPhi(REAL xi,
                          REAL yi,
@@ -503,20 +527,29 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 	    	         REAL zl)
    */
 
-   torsionAngle=blPhi(lightChainProjection[0],lightChainProjection[1],lightChainProjection[2],
-		    lightChainCentroid[0],lightChainCentroid[1],lightChainCentroid[2],
-		    heavyChainCentroid[0],heavyChainCentroid[1],heavyChainCentroid[2],
-   		    heavyChainProjection[0],heavyChainProjection[1],heavyChainProjection[2]);
+   torsionAngle=blPhi(lightChainProjection[0],
+                      lightChainProjection[1],
+                      lightChainProjection[2],
+                      lightChainCentroid[0],
+                      lightChainCentroid[1],
+                      lightChainCentroid[2],
+                      heavyChainCentroid[0],
+                      heavyChainCentroid[1],
+                      heavyChainCentroid[2],
+                      heavyChainProjection[0],
+                      heavyChainProjection[1],
+                      heavyChainProjection[2]);
 
    /* Step 6: Return torsion angle to calling function. */
 
    return torsionAngle;
 
-} /* end of function "calculate_torsion_angle". */
+}
 
 
 
-void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
+/************************************************************************/
+void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
 {
    /* Step 1: Declare variables to be used in the function. */
 
@@ -552,7 +585,8 @@ void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
 
    double torsionAngle=0;
 
-   /* Step 2: Read atoms from the light and heavy chain PDB files into two linked lists */
+   /* Step 2: Read atoms from the light and heavy chain PDB files into
+    * two linked lists */
 
    fp=fopen(lightChainFilename,"r");
    lightFirst=blReadPDB(fp,&lightChainNumberOfAtoms);
@@ -562,70 +596,86 @@ void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
    heavyFirst=blReadPDB(fp,&heavyChainNumberOfAtoms);
    fclose(fp);
 
-   /* Step 3: Read the light and heavy chain constant position coordinates for CA atoms
-	      from the linked lists into arrays. Function:
+   /* Step 3: Read the light and heavy chain constant position
+	      coordinates for CA atoms from the linked lists into
+	      arrays. Function:
 
-      int read_coordinates(char **chainConstantPositionsList,char **coordArray,PDB *firstPointer)
+      int read_coordinates(char **chainConstantPositionsList,
+                           char **coordArray,PDB *firstPointer)
    */
 
-   lightChainConstantPositionCoordinates=(double **)malloc(MAXPOINTS * sizeof(double *));
-   heavyChainConstantPositionCoordinates=(double **)malloc(MAXPOINTS * sizeof(double *));
+   lightChainConstantPositionCoordinates = 
+      (double **)malloc(MAXPOINTS * sizeof(double *));
+   heavyChainConstantPositionCoordinates = 
+      (double **)malloc(MAXPOINTS * sizeof(double *));
 
-   numberOfConstantLightChainPositions=read_coordinates(lightChainConstantPositionsList,
-							lightChainConstantPositionCoordinates,
-							lightFirst);
+   numberOfConstantLightChainPositions = 
+      read_coordinates(lightChainConstantPositionsList,
+                       lightChainConstantPositionCoordinates,
+                       lightFirst);
 
-   numberOfConstantHeavyChainPositions=read_coordinates(heavyChainConstantPositionsList,
-							heavyChainConstantPositionCoordinates,
-							heavyFirst);
+   numberOfConstantHeavyChainPositions = 
+      read_coordinates(heavyChainConstantPositionsList,
+                       heavyChainConstantPositionCoordinates,
+                       heavyFirst);
 
-   /* Step 4: Find mid points of atoms that are structurally adjacent. This is done to find
-	      the best fit line.
+   /* Step 4: Find mid points of atoms that are structurally
+	      adjacent. This is done to find the best fit line.
    */
 
    /* Calculation of mid points for the Light chain. */
 
-   modifiedLightCoordinates=(double  **)malloc( (numberOfConstantLightChainPositions/2) * sizeof(double *) );
+   modifiedLightCoordinates = 
+      (double **)malloc( (numberOfConstantLightChainPositions/2) * 
+                         sizeof(double *) );
    nextPointIndex=numberOfConstantLightChainPositions/2;
 
-   for(i=0;i<numberOfConstantLightChainPositions/2;i++)
+   for(i=0; i<numberOfConstantLightChainPositions/2; i++)
    {
       modifiedLightCoordinates[i]=(double *)malloc(3 * sizeof(double));
 
-      modifiedLightCoordinates[i][0] = (lightChainConstantPositionCoordinates[i][0] +
-					lightChainConstantPositionCoordinates[i+nextPointIndex][0])/2;
+      modifiedLightCoordinates[i][0] = 
+         (lightChainConstantPositionCoordinates[i][0] +
+          lightChainConstantPositionCoordinates[i+nextPointIndex][0])/2;
 
-      modifiedLightCoordinates[i][1] = (lightChainConstantPositionCoordinates[i][1] +
-					lightChainConstantPositionCoordinates[i+nextPointIndex][1])/2;
+      modifiedLightCoordinates[i][1] =
+         (lightChainConstantPositionCoordinates[i][1] +
+          lightChainConstantPositionCoordinates[i+nextPointIndex][1])/2;
 
-      modifiedLightCoordinates[i][2] = (lightChainConstantPositionCoordinates[i][2] +
-					lightChainConstantPositionCoordinates[i+nextPointIndex][2])/2;
+      modifiedLightCoordinates[i][2] =
+         (lightChainConstantPositionCoordinates[i][2] +
+          lightChainConstantPositionCoordinates[i+nextPointIndex][2])/2;
    }
 
    /* Calculation of mid points for the heavy chain. */
 
-   modifiedHeavyCoordinates=(double **)malloc( (numberOfConstantHeavyChainPositions/2) * sizeof(double *) );
+   modifiedHeavyCoordinates = 
+      (double **)malloc( (numberOfConstantHeavyChainPositions/2) * 
+                         sizeof(double *) );
    nextPointIndex=numberOfConstantHeavyChainPositions/2;
 
-   for(i=0;i<numberOfConstantHeavyChainPositions/2;i++)
+   for(i=0; i<numberOfConstantHeavyChainPositions/2; i++)
    {
       modifiedHeavyCoordinates[i]=(double *)malloc(3 * sizeof(double));
 
-      modifiedHeavyCoordinates[i][0] = (heavyChainConstantPositionCoordinates[i][0] +
-					heavyChainConstantPositionCoordinates[i+nextPointIndex][0])/2;
+      modifiedHeavyCoordinates[i][0] = 
+         (heavyChainConstantPositionCoordinates[i][0] +
+          heavyChainConstantPositionCoordinates[i+nextPointIndex][0])/2;
+      
+      modifiedHeavyCoordinates[i][1] =
+         (heavyChainConstantPositionCoordinates[i][1] +
+          heavyChainConstantPositionCoordinates[i+nextPointIndex][1])/2;
 
-      modifiedHeavyCoordinates[i][1] = (heavyChainConstantPositionCoordinates[i][1] +
-					heavyChainConstantPositionCoordinates[i+nextPointIndex][1])/2;
-
-      modifiedHeavyCoordinates[i][2] = (heavyChainConstantPositionCoordinates[i][2] +
-					heavyChainConstantPositionCoordinates[i+nextPointIndex][2])/2;
+      modifiedHeavyCoordinates[i][2] =
+         (heavyChainConstantPositionCoordinates[i][2] +
+          heavyChainConstantPositionCoordinates[i+nextPointIndex][2])/2;
    }
 
 
    /* -------------- NEW BIT OF MODIFICATION ------------------ */
 
-   /* Step 5: Call the routine to fit the least squares distant line for the points.
-              Format for function that performs this:
+   /* Step 5: Call the routine to fit the least squares distant line
+              for the points.  Format for function that performs this:
 
       void compute_best_fit_line(double **coordinates,
       				 int numberOfPoints,
@@ -654,10 +704,14 @@ void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
 
    /* Step 6: Calculate the torsion angle using the following points:
 
-	      Light chain: Light chain centroid and mid point of L35 and L88.
-	      Heavy chain: Heavy chain centroid and mid point of L36 and L92.
+	      Light chain: Light chain centroid and mid point of L35
+	      and L88.
 
-	      We use the function "calculate_torsion_angle" whose syntax is as below:
+              Heavy chain: Heavy chain centroid and mid point of L36
+	      and L92.
+
+	      We use the function "calculate_torsion_angle" whose
+	      syntax is as below:
 
 	      double calculate_torsion_angle(double *lightChainVector,
 	                                     double *lightChainCentroid,
@@ -676,8 +730,9 @@ void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
 
    torsionAngle=(torsionAngle * 180)/PI;
 
-   /* Step 7: Print the torsion angle and 3write the coordinates of the imaginary regression line
-	      into a PDB file (if required).
+   /* Step 7: Print the torsion angle and 3write the coordinates of
+	      the imaginary regression line into a PDB file (if
+	      required).
    */
 
    printf("Torsion angle: %f\n",torsionAngle);
@@ -702,7 +757,8 @@ void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
 
    printf("------------------------------------\n");
 
-   /* Step 8: Release memory allocated to pointers and return to the calling function */
+   /* Step 8: Release memory allocated to pointers and return to the
+    * calling function */
 
    for(i=0;i<numberOfConstantLightChainPositions/2;i++)
    {
@@ -757,9 +813,10 @@ void plot(char *lightChainFilename,char *heavyChainFilename,FILE *wfp)
 
    /* Step : Close the file pointer and exit from the function */
 
-} /* End of function "plot". */
+}
 
 
+/************************************************************************/
 /* void Usage(): Shows the usage of the program
 */
 
@@ -777,14 +834,15 @@ void Usage()
 } /* End of function "Usage". */
 
 
-/* BOOL parse_command_line_parameters(int numberOfParam,char **param):
-
-   This function parses for command line parameters. TRUE is returned if all
-   the parameters are successfully read into the program, else FALSE is returned.
+/************************************************************************/
+/*>BOOL parse_command_line_parameters(int numberOfParam,char **param)
+   ------------------------------------------------------------------
+*//**
+   This function parses for command line parameters. TRUE is returned
+   if all the parameters are successfully read into the program, else
+   FALSE is returned.
 */
-
-
-BOOL parse_command_line_parameters(int numberOfParam,char **param)
+BOOL parse_command_line_parameters(int numberOfParam, char **param)
 {
    int i=1;
 
@@ -796,45 +854,44 @@ BOOL parse_command_line_parameters(int numberOfParam,char **param)
          i+=2;
          continue;
       }
-      else
-      if(! strcasecmp(param[i],"-h") )
+      else if(! strcasecmp(param[i],"-h") )
       {
          strcpy(heavyChainFilename,param[i+1]);
          i+=2;
          continue;
       }
-      else
-      if(! strcasecmp(param[i],"-pdb") )
+      else if(! strcasecmp(param[i],"-pdb") )
       {
          displayPDBFlag=TRUE;
          strcpy(pdbCode,param[i+1]);
          i+=2;
          continue;
       }
-      else
-      if(! strcasecmp(param[i],"-output") )
+      else if(! strcasecmp(param[i],"-output") )
       {
 	 displayOutputFlag=TRUE;
 	 strcpy(outputFilename,param[i+1]);
 	 i+=2;
 	 continue;
       }
-      else
-      if(! strcasecmp(param[i],"-stats") )
+      else if(! strcasecmp(param[i],"-stats") )
       {
 	 displayStats=TRUE;
 	 i+=1;
 	 continue;
       }
       else
+      {
          return FALSE;
+      }
    }
 
    return TRUE;
 
-} /* End of function "parse_command_line_parameters". */
+}
 
 
+/************************************************************************/
 int main(int argc,char **argv)
 {
    /* Declare variables local to main. */
@@ -855,18 +912,22 @@ int main(int argc,char **argv)
 
    if( access(lightChainFilename,R_OK) )
    {
-      printf("\n Light chain file \"%s\" does not exist. Aborting program\n\n",lightChainFilename);
+      printf("\n Light chain file \"%s\" does not exist. Aborting program\n\n",
+             lightChainFilename);
       return 0;
    }
 
    if( access(heavyChainFilename,R_OK) )
    {
-      printf("\n Heavy chain file \"%s\" does not exist. Aborting program\n\n",heavyChainFilename);
+      printf("\n Heavy chain file \"%s\" does not exist. Aborting program\n\n",
+             heavyChainFilename);
       return 0;
    }
 
-   lightChainConstantPositionsList=(char **)malloc(MAXPOINTS * sizeof(char *));
-   heavyChainConstantPositionsList=(char **)malloc(MAXPOINTS * sizeof(char *));
+   lightChainConstantPositionsList = 
+      (char **)malloc(MAXPOINTS * sizeof(char *));
+   heavyChainConstantPositionsList = 
+      (char **)malloc(MAXPOINTS * sizeof(char *));
 
    create_constant_positions_list(lightChainConstantPositionsList,NULL,
 				  heavyChainConstantPositionsList,NULL);

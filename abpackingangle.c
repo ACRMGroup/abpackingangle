@@ -70,25 +70,27 @@
 /************************************************************************/
 /* Defines and macros
 */
-#define MAXPOINTS 64
-
+#define MAXPOINTS    64
+#define MAXFILENAME 160
+#define MAXPDBCODE    8
 
 /************************************************************************/
 /* Globals
 */
-static char lightChainFilename[100],
-            heavyChainFilename[100];
+static char gLightChainFilename[MAXFILENAME],
+            gHeavyChainFilename[MAXFILENAME];
 
-static BOOL displayPDBFlag=FALSE,
-            displayOutputFlag=FALSE,
-            displayStats=FALSE;
+static BOOL gDisplayPDBFlag=FALSE,
+            gDisplayOutputFlag=FALSE,
+            gDisplayStats=FALSE;
 
-static char pdbCode[8];
+static char gPDBCode[MAXPDBCODE];
 
-static char **lightChainConstantPositionsList=NULL,
-            **heavyChainConstantPositionsList=NULL;
+static char **gLightChainConstantPositionsList=NULL,
+            **gHeavyChainConstantPositionsList=NULL;
 
-static char outputFilename[100];
+static char gOutputFilename[MAXFILENAME];
+
 
 /************************************************************************/
 /* Prototypes
@@ -115,7 +117,87 @@ void draw_regression_line(double **coordinates,
 			  FILE *wfp);
 void plot(char *lightChainFilename, char *heavyChainFilename,
           FILE *wfp);
-void Usage();
+void Usage(void);
+/*BOOL parse_command_line_parameters(int numberOfParam, char **param); */
+BOOL ParseCommandLine(int argc, char **argv, char *lightFile, char *heavyFile, char *pdbCode,
+                      char *vecFile, BOOL *debug);
+
+
+/************************************************************************/
+int main(int argc,char **argv)
+{
+   /* Declare variables local to main. */
+
+   FILE *wfp=NULL;
+
+   if(argc < 5)
+   {
+      Usage();
+      return 0;
+   }
+
+   if(!ParseCommandLine(argc, argv, gLightChainFilename, gHeavyChainFilename, gPDBCode, 
+                        gOutputFilename, &gDisplayStats))
+   {
+      Usage();
+      return 0;
+   }
+
+   if(gPDBCode[0])
+   {
+      gDisplayPDBFlag = TRUE;
+   }
+   if(gOutputFilename[0])
+   {
+      gDisplayOutputFlag=TRUE;
+   }
+   
+         
+
+   
+
+   if( access(gLightChainFilename,R_OK) )
+   {
+      printf("\n Light chain file \"%s\" does not exist. Aborting program\n\n",
+             gLightChainFilename);
+      return 1;
+   }
+
+   if( access(gHeavyChainFilename,R_OK) )
+   {
+      printf("\n Heavy chain file \"%s\" does not exist. Aborting program\n\n",
+             gHeavyChainFilename);
+      return 1;
+   }
+
+   gLightChainConstantPositionsList = 
+      (char **)malloc(MAXPOINTS * sizeof(char *));
+   gHeavyChainConstantPositionsList = 
+      (char **)malloc(MAXPOINTS * sizeof(char *));
+
+   create_constant_positions_list(gLightChainConstantPositionsList,NULL,
+				  gHeavyChainConstantPositionsList,NULL);
+
+   if(gDisplayPDBFlag)
+      printf("PDB Code: %s\n",gPDBCode);
+
+   if(gDisplayOutputFlag)
+   {
+      if(gDisplayPDBFlag)
+      {
+	 wfp=fopen(gOutputFilename,"w");
+      }
+      else
+      {
+	 wfp=stdout;
+      }
+   }
+
+   plot(gLightChainFilename,gHeavyChainFilename,wfp);
+
+   return 0;
+}
+
 
 /************************************************************************/
 /*>void get_atom_number_and_insert_code(char *constantPosition,
@@ -476,7 +558,7 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
           heavyChainVector, "Heavy");
 
 
-   if(displayStats)
+   if(gDisplayStats)
    {
       printf("\nLight chain centroid:\t");
 
@@ -610,12 +692,12 @@ void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
       (double **)malloc(MAXPOINTS * sizeof(double *));
 
    numberOfConstantLightChainPositions = 
-      read_coordinates(lightChainConstantPositionsList,
+      read_coordinates(gLightChainConstantPositionsList,
                        lightChainConstantPositionCoordinates,
                        lightFirst);
 
    numberOfConstantHeavyChainPositions = 
-      read_coordinates(heavyChainConstantPositionsList,
+      read_coordinates(gHeavyChainConstantPositionsList,
                        heavyChainConstantPositionCoordinates,
                        heavyFirst);
 
@@ -737,7 +819,7 @@ void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
 
    printf("Torsion angle: %f\n",torsionAngle);
 
-   if(displayOutputFlag)
+   if(gDisplayOutputFlag)
    {
       draw_regression_line(lightChainConstantPositionCoordinates,
                            lightEigenVector,
@@ -834,120 +916,79 @@ void Usage()
 } /* End of function "Usage". */
 
 
+
 /************************************************************************/
-/*>BOOL parse_command_line_parameters(int numberOfParam,char **param)
-   ------------------------------------------------------------------
+/*>BOOL ParseCommandLine(int argc, char **argv, char *lightFile, 
+                         char *heavyFile, char *pdbCode, char *vecFile,
+                         BOOL *debug)
+   --------------------------------------------------------------------
 *//**
-   This function parses for command line parameters. TRUE is returned
-   if all the parameters are successfully read into the program, else
-   FALSE is returned.
+
+
 */
-BOOL parse_command_line_parameters(int numberOfParam, char **param)
+BOOL ParseCommandLine(int argc, char **argv, char *lightFile, 
+                      char *heavyFile, char *pdbCode, char *vecFile,
+                      BOOL *debug)
 {
-   int i=1;
+   lightFile[0] = '\0';
+   heavyFile[0] = '\0';
+   pdbCode[0]   = '\0';
+   vecFile[0]   = '\0';
+   
 
-   while(i < numberOfParam)
+   argc--;
+   argv++;
+   
+   while(argc)
    {
-      if(! strcasecmp(param[i],"-l") )
+      if(argv[0][0] == '-')
       {
-         strcpy(lightChainFilename,param[i+1]);
-         i+=2;
-         continue;
+         switch(argv[0][1])
+         {
+/*
+         case 'h':
+            return(FALSE);
+            break;
+*/
+         case 'l':
+            argc--;
+            argv++;
+            if(!argc)
+               return(FALSE);
+            strncpy(lightFile, argv[0], MAXFILENAME);
+            break;
+         case 'h':
+            argc--;
+            argv++;
+            if(!argc)
+               return(FALSE);
+            strncpy(heavyFile, argv[0], MAXFILENAME);
+            break;
+         case 'p':
+            argc--;
+            argv++;
+            if(!argc)
+               return(FALSE);
+            strncpy(pdbCode, argv[0], MAXPDBCODE);
+            break;
+         case 'o':
+            argc--;
+            argv++;
+            if(!argc)
+               return(FALSE);
+            strncpy(vecFile, argv[0], MAXFILENAME);
+            break;
+         case 's':
+         case 'd':
+            *debug = TRUE;
+            break;
+         default:
+            return(FALSE);
+         }
       }
-      else if(! strcasecmp(param[i],"-h") )
-      {
-         strcpy(heavyChainFilename,param[i+1]);
-         i+=2;
-         continue;
-      }
-      else if(! strcasecmp(param[i],"-pdb") )
-      {
-         displayPDBFlag=TRUE;
-         strcpy(pdbCode,param[i+1]);
-         i+=2;
-         continue;
-      }
-      else if(! strcasecmp(param[i],"-output") )
-      {
-	 displayOutputFlag=TRUE;
-	 strcpy(outputFilename,param[i+1]);
-	 i+=2;
-	 continue;
-      }
-      else if(! strcasecmp(param[i],"-stats") )
-      {
-	 displayStats=TRUE;
-	 i+=1;
-	 continue;
-      }
-      else
-      {
-         return FALSE;
-      }
+      argc--;
+      argv++;
    }
-
-   return TRUE;
-
-}
-
-
-/************************************************************************/
-int main(int argc,char **argv)
-{
-   /* Declare variables local to main. */
-
-   FILE *wfp=NULL;
-
-   if(argc < 5)
-   {
-      Usage();
-      return 0;
-   }
-
-   if(! parse_command_line_parameters(argc,argv) )
-   {
-      Usage();
-      return 0;
-   }
-
-   if( access(lightChainFilename,R_OK) )
-   {
-      printf("\n Light chain file \"%s\" does not exist. Aborting program\n\n",
-             lightChainFilename);
-      return 0;
-   }
-
-   if( access(heavyChainFilename,R_OK) )
-   {
-      printf("\n Heavy chain file \"%s\" does not exist. Aborting program\n\n",
-             heavyChainFilename);
-      return 0;
-   }
-
-   lightChainConstantPositionsList = 
-      (char **)malloc(MAXPOINTS * sizeof(char *));
-   heavyChainConstantPositionsList = 
-      (char **)malloc(MAXPOINTS * sizeof(char *));
-
-   create_constant_positions_list(lightChainConstantPositionsList,NULL,
-				  heavyChainConstantPositionsList,NULL);
-
-   if(displayPDBFlag)
-      printf("PDB Code: %s\n",pdbCode);
-
-   if(displayOutputFlag)
-   {
-      if(displayPDBFlag)
-      {
-	 wfp=fopen(outputFilename,"w");
-      }
-      else
-      {
-	 wfp=stdout;
-      }
-   }
-
-   plot(lightChainFilename,heavyChainFilename,wfp);
-
-   return 1;
+   
+   return(TRUE);
 }

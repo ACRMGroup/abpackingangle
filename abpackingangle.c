@@ -116,20 +116,15 @@ int main(int argc,char **argv)
 {
    FILE *wfp=NULL;
    char LightChainFilename[MAXFILENAME],
-        HeavyChainFilename[MAXFILENAME];
-   BOOL DisplayPDBFlag=FALSE;
-   BOOL DisplayOutputFlag=FALSE;
-   BOOL DisplayStatsFlag=FALSE;
-   char PDBCode[MAXPDBCODE];
-   
-   char **lightChainConstantPositionsList=NULL,
+        HeavyChainFilename[MAXFILENAME],
+        outputFilename[MAXFILENAME],
+        PDBCode[MAXPDBCODE],
+        **lightChainConstantPositionsList=NULL,
         **heavyChainConstantPositionsList=NULL;
-   char outputFilename[MAXFILENAME];
 
-
-   
-
-
+   BOOL 
+        DisplayOutputFlag = FALSE,
+        DisplayStatsFlag  = FALSE;
 
    if(argc < 5)
    {
@@ -137,17 +132,13 @@ int main(int argc,char **argv)
       return 0;
    }
 
-   if(!ParseCommandLine(argc, argv, LightChainFilename, HeavyChainFilename, PDBCode, 
-                        outputFilename, &DisplayStatsFlag))
+   if(!ParseCommandLine(argc, argv, LightChainFilename, HeavyChainFilename,
+                        PDBCode, outputFilename, &DisplayStatsFlag))
    {
       Usage();
       return 0;
    }
 
-   if(PDBCode[0])
-   {
-      DisplayPDBFlag = TRUE;
-   }
    if(outputFilename[0])
    {
       DisplayOutputFlag=TRUE;
@@ -179,12 +170,12 @@ int main(int argc,char **argv)
    create_constant_positions_list(lightChainConstantPositionsList,NULL,
 				  heavyChainConstantPositionsList,NULL);
 
-   if(DisplayPDBFlag)
+   if(PDBCode[0])
       printf("PDB Code: %s\n",PDBCode);
 
    if(DisplayOutputFlag)
    {
-      if(DisplayPDBFlag)
+      if(PDBCode[0])
       {
 	 wfp=fopen(outputFilename,"w");
       }

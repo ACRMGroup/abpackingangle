@@ -122,8 +122,7 @@ int main(int argc,char **argv)
         **lightChainConstantPositionsList=NULL,
         **heavyChainConstantPositionsList=NULL;
 
-   BOOL 
-        DisplayOutputFlag = FALSE,
+   BOOL DisplayOutputFlag = FALSE,
         DisplayStatsFlag  = FALSE;
 
    if(argc < 5)
@@ -143,9 +142,6 @@ int main(int argc,char **argv)
    {
       DisplayOutputFlag=TRUE;
    }
-   
-         
-
    
 
    if( access(LightChainFilename,R_OK) )
@@ -175,14 +171,13 @@ int main(int argc,char **argv)
 
    if(DisplayOutputFlag)
    {
-      if(PDBCode[0])
+      if((wfp=fopen(outputFilename,"w"))==NULL)
       {
-	 wfp=fopen(outputFilename,"w");
+         fprintf(stderr,"Error (abpackingangle) - Can't write output file: %s\n",
+                 outputFilename);
+         return(1);
       }
-      else
-      {
-	 wfp=stdout;
-      }
+      
    }
 
    plot(LightChainFilename,HeavyChainFilename,wfp,DisplayOutputFlag, 

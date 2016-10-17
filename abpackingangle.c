@@ -77,19 +77,6 @@
 /************************************************************************/
 /* Globals
 */
-static char gLightChainFilename[MAXFILENAME],
-            gHeavyChainFilename[MAXFILENAME];
-
-static BOOL gDisplayPDBFlag=FALSE,
-            gDisplayOutputFlag=FALSE,
-            gDisplayStats=FALSE;
-
-static char gPDBCode[MAXPDBCODE];
-
-static char **gLightChainConstantPositionsList=NULL,
-            **gHeavyChainConstantPositionsList=NULL;
-
-static char gOutputFilename[MAXFILENAME];
 
 
 /************************************************************************/
@@ -116,9 +103,10 @@ void draw_regression_line(double **coordinates,
 			  char *chainLabel,
 			  FILE *wfp);
 void plot(char *lightChainFilename, char *heavyChainFilename,
-          FILE *wfp);
+          FILE *wfp, BOOL displayOutputFlag, BOOL DisplayStatsFlag,
+          char **lightChainConstantPositionsList,
+          char **heavyChainConstantPositionsList);
 void Usage(void);
-/*BOOL parse_command_line_parameters(int numberOfParam, char **param); */
 BOOL ParseCommandLine(int argc, char **argv, char *lightFile, char *heavyFile, char *pdbCode,
                       char *vecFile, BOOL *debug);
 
@@ -126,9 +114,22 @@ BOOL ParseCommandLine(int argc, char **argv, char *lightFile, char *heavyFile, c
 /************************************************************************/
 int main(int argc,char **argv)
 {
-   /* Declare variables local to main. */
-
    FILE *wfp=NULL;
+   char LightChainFilename[MAXFILENAME],
+        HeavyChainFilename[MAXFILENAME];
+   BOOL DisplayPDBFlag=FALSE;
+   BOOL DisplayOutputFlag=FALSE;
+   BOOL DisplayStatsFlag=FALSE;
+   char PDBCode[MAXPDBCODE];
+   
+   char **lightChainConstantPositionsList=NULL,
+        **heavyChainConstantPositionsList=NULL;
+   char outputFilename[MAXFILENAME];
+
+
+   
+
+
 
    if(argc < 5)
    {
@@ -136,56 +137,56 @@ int main(int argc,char **argv)
       return 0;
    }
 
-   if(!ParseCommandLine(argc, argv, gLightChainFilename, gHeavyChainFilename, gPDBCode, 
-                        gOutputFilename, &gDisplayStats))
+   if(!ParseCommandLine(argc, argv, LightChainFilename, HeavyChainFilename, PDBCode, 
+                        outputFilename, &DisplayStatsFlag))
    {
       Usage();
       return 0;
    }
 
-   if(gPDBCode[0])
+   if(PDBCode[0])
    {
-      gDisplayPDBFlag = TRUE;
+      DisplayPDBFlag = TRUE;
    }
-   if(gOutputFilename[0])
+   if(outputFilename[0])
    {
-      gDisplayOutputFlag=TRUE;
+      DisplayOutputFlag=TRUE;
    }
    
          
 
    
 
-   if( access(gLightChainFilename,R_OK) )
+   if( access(LightChainFilename,R_OK) )
    {
       printf("\n Light chain file \"%s\" does not exist. Aborting program\n\n",
-             gLightChainFilename);
+             LightChainFilename);
       return 1;
    }
 
-   if( access(gHeavyChainFilename,R_OK) )
+   if( access(HeavyChainFilename,R_OK) )
    {
       printf("\n Heavy chain file \"%s\" does not exist. Aborting program\n\n",
-             gHeavyChainFilename);
+             HeavyChainFilename);
       return 1;
    }
 
-   gLightChainConstantPositionsList = 
+   lightChainConstantPositionsList = 
       (char **)malloc(MAXPOINTS * sizeof(char *));
-   gHeavyChainConstantPositionsList = 
+   heavyChainConstantPositionsList = 
       (char **)malloc(MAXPOINTS * sizeof(char *));
 
-   create_constant_positions_list(gLightChainConstantPositionsList,NULL,
-				  gHeavyChainConstantPositionsList,NULL);
+   create_constant_positions_list(lightChainConstantPositionsList,NULL,
+				  heavyChainConstantPositionsList,NULL);
 
-   if(gDisplayPDBFlag)
-      printf("PDB Code: %s\n",gPDBCode);
+   if(DisplayPDBFlag)
+      printf("PDB Code: %s\n",PDBCode);
 
-   if(gDisplayOutputFlag)
+   if(DisplayOutputFlag)
    {
-      if(gDisplayPDBFlag)
+      if(DisplayPDBFlag)
       {
-	 wfp=fopen(gOutputFilename,"w");
+	 wfp=fopen(outputFilename,"w");
       }
       else
       {
@@ -193,7 +194,10 @@ int main(int argc,char **argv)
       }
    }
 
-   plot(gLightChainFilename,gHeavyChainFilename,wfp);
+   plot(LightChainFilename,HeavyChainFilename,wfp,DisplayOutputFlag, 
+        DisplayStatsFlag,
+        lightChainConstantPositionsList,
+        heavyChainConstantPositionsList);
 
    return 0;
 }
@@ -480,7 +484,8 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
   			     REAL *lightChainPointToBeProjected,
   			     REAL *heavyChainVector,
   			     REAL *heavyChainCentroid,
-  			     REAL *heavyChainPointToBeProjected)
+  			     REAL *heavyChainPointToBeProjected,
+                             BOOL DisplayStatsFlag)
 {
    /* Step 1: Declare variables to be used in the function. */
 
@@ -558,7 +563,7 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
           heavyChainVector, "Heavy");
 
 
-   if(gDisplayStats)
+   if(DisplayStatsFlag)
    {
       printf("\nLight chain centroid:\t");
 
@@ -631,7 +636,10 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 
 
 /************************************************************************/
-void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
+void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp,
+          BOOL displayOutputFlag, BOOL DisplayStatsFlag,
+          char **lightChainConstantPositionsList,
+          char **heavyChainConstantPositionsList)
 {
    /* Step 1: Declare variables to be used in the function. */
 
@@ -692,12 +700,12 @@ void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
       (double **)malloc(MAXPOINTS * sizeof(double *));
 
    numberOfConstantLightChainPositions = 
-      read_coordinates(gLightChainConstantPositionsList,
+      read_coordinates(lightChainConstantPositionsList,
                        lightChainConstantPositionCoordinates,
                        lightFirst);
 
    numberOfConstantHeavyChainPositions = 
-      read_coordinates(gHeavyChainConstantPositionsList,
+      read_coordinates(heavyChainConstantPositionsList,
                        heavyChainConstantPositionCoordinates,
                        heavyFirst);
 
@@ -800,7 +808,8 @@ void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
 	                                     double *lightChainPointToBeProjected,
 	                                     double *heavyChainVector,
 	                                     double *heavyChainCentroid,
-	                                     double *heavyChainPointToBeProjected)
+	                                     double *heavyChainPointToBeProjected,
+                                             BOOL   DisplayStatsFlag)
    */
 
    torsionAngle=calculate_torsion_angle(lightEigenVector,
@@ -808,7 +817,7 @@ void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
 			                modifiedLightCoordinates[0],
 			                heavyEigenVector,
 			                heavyChainCentroid,
-			                modifiedHeavyCoordinates[0]);
+			                modifiedHeavyCoordinates[0], DisplayStatsFlag);
 
    torsionAngle=(torsionAngle * 180)/PI;
 
@@ -819,7 +828,7 @@ void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
 
    printf("Torsion angle: %f\n",torsionAngle);
 
-   if(gDisplayOutputFlag)
+   if(displayOutputFlag)
    {
       draw_regression_line(lightChainConstantPositionCoordinates,
                            lightEigenVector,
@@ -904,7 +913,7 @@ void plot(char *lightChainFilename, char *heavyChainFilename, FILE *wfp)
 
 void Usage()
 {
-   printf("\n Usage: ./calculate_interface_angle.exe <Parameters>\n");
+   printf("\n Usage: abpackingangle <Parameters>\n");
    printf("\n Parameters are:\n");
    printf("\n 1. -l <Light chain PDB file>");
    printf("\n 2. -h <Heavy chain PDB file>");

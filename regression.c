@@ -4,8 +4,8 @@
 #include "matrix.h"
 
 
-/* void draw_regression_line(double **coordinates,     // Coordinates of points used to calculate regression line
-                             double *eigenVector,      // Eigen vector components of the regression line
+/* void draw_regression_line(REAL **coordinates,     // Coordinates of points used to calculate regression line
+                             REAL *eigenVector,      // Eigen vector components of the regression line
                              int numberOfPoints,       // Number of points (number of rows in coordinates array).
                              char *chainLabel,         // Chain label when writing to PDB file.
                              FILE *wfp)                // File pointer to write into a PDB file.
@@ -18,8 +18,8 @@
 */
 
 
-void draw_regression_line(double **coordinates,
-                          double *eigenVector,
+void draw_regression_line(REAL **coordinates,
+                          REAL *eigenVector,
                           int numberOfPoints,
                           char *chainLabel,
                           FILE *wfp)
@@ -38,26 +38,26 @@ void draw_regression_line(double **coordinates,
 
    int i=0;
 
-   double xarray[10],
+   REAL xarray[10],
           smallestX=0,
           largestX=0;
 
-   double *centroid=NULL;
+   REAL *centroid=NULL;
 
 
    /* Step 1: First find centroid of the light chain positions.
 
-      void find_mean(double **points,double *centroid,int numberOfPoints,int numberOfDimensions)
+      void find_mean(REAL **points,REAL *centroid,int numberOfPoints,int numberOfDimensions)
    */
 
-   centroid=(double *)malloc(3 * sizeof(double));
+   centroid=(REAL *)malloc(3 * sizeof(REAL));
 
    find_mean(coordinates,centroid,numberOfPoints,3);
 
 
    /* Step 2: Use the function
 
-      void find_largest_smallest_indices_double(double *doubleArray,
+      void find_largest_smallest_indices_REAL(REAL *REALArray,
                                                 int numberOfElements,
                                                 int *smallestValueIndex,
                                                 int *largestValueIndex)
@@ -73,7 +73,7 @@ void draw_regression_line(double **coordinates,
       xarray[i]=coordinates[i][0];
    }
 
-   find_largest_smallest_indices_double(xarray,
+   find_largest_smallest_indices_REAL(xarray,
                                         numberOfPoints,
                                         &smallestValueIndex,
                                         &largestValueIndex);
@@ -185,17 +185,17 @@ void draw_regression_line(double **coordinates,
 }
 
 
-void compute_best_fit_line(double **coordinates,
+void compute_best_fit_line(REAL **coordinates,
 			   int numberOfPoints,
 			   int numberOfDimensions,
-			   double *centroid,
-			   double *eigenVector)
+			   REAL *centroid,
+			   REAL *eigenVector)
 {
    /* Step 1: Declare the variables */
 
-   double *eigenValues=NULL;
+   REAL *eigenValues=NULL;
 
-   double **covarianceMatrix=NULL,
+   REAL **covarianceMatrix=NULL,
 	  **eigenVectorMatrix=NULL;
 
    int smallestEigenValueIndex=0,
@@ -205,15 +205,15 @@ void compute_best_fit_line(double **coordinates,
 
    /* Step 2: Allocate memory for all the dynamic variables */
 
-   eigenValues=(double *)malloc(numberOfDimensions * sizeof(double));
+   eigenValues=(REAL *)malloc(numberOfDimensions * sizeof(REAL));
 
-   covarianceMatrix=(double **)malloc(numberOfDimensions * sizeof(double *));
-   eigenVectorMatrix=(double **)malloc(numberOfDimensions * sizeof(double *));
+   covarianceMatrix=(REAL **)malloc(numberOfDimensions * sizeof(REAL *));
+   eigenVectorMatrix=(REAL **)malloc(numberOfDimensions * sizeof(REAL *));
 
    for(i=0;i<numberOfDimensions;i++)
    {
-      covarianceMatrix[i]=(double *)malloc(numberOfDimensions * sizeof(double));
-      eigenVectorMatrix[i]=(double *)malloc(numberOfDimensions * sizeof(double));
+      covarianceMatrix[i]=(REAL *)malloc(numberOfDimensions * sizeof(REAL));
+      eigenVectorMatrix[i]=(REAL *)malloc(numberOfDimensions * sizeof(REAL));
    }
 
    /* Step 3: Find the centroid of the points. */
@@ -229,15 +229,15 @@ void compute_best_fit_line(double **coordinates,
    blEigen(covarianceMatrix,eigenVectorMatrix,eigenValues,numberOfDimensions);
 
    /* Step 6: Find the eigen vector that corresponds to the maximum eigen value. We use the function
-	      "find_largest_smallest_indices_double" for this. The format for this function is:
+	      "find_largest_smallest_indices_REAL" for this. The format for this function is:
 
-	      void find_largest_smallest_indices_double(double *doubleArray,
+	      void find_largest_smallest_indices_REAL(REAL *REALArray,
 	 	                                        int numberOfElements,
                 		                        int *smallestValueIndex,
                                 		        int *largestValueIndex)
    */
 
-   find_largest_smallest_indices_double(eigenValues,
+   find_largest_smallest_indices_REAL(eigenValues,
 					numberOfDimensions,
 					&smallestEigenValueIndex,
 					&largestEigenValueIndex);

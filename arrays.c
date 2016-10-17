@@ -2,36 +2,36 @@
 #include <string.h>
 #include <ctype.h>
 
-void find_largest_smallest_indices_double(double *doubleArray,
+void find_largest_smallest_indices_REAL(REAL *REALArray,
                                           int numberOfElements,
                                           int *smallestValueIndex,
                                           int *largestValueIndex)
 {
-   double smallestValue=1000000000,
+   REAL smallestValue=1000000000,
           largestValue=-1000000000;
 
    int i=0;
 
    for(i=0;i<numberOfElements;i++)
    {
-      if(doubleArray[i] > largestValue)
+      if(REALArray[i] > largestValue)
       {
-         largestValue=doubleArray[i];
+         largestValue=REALArray[i];
 
          if(largestValueIndex)
             *largestValueIndex=i;
       }
 
-      if(doubleArray[i] < smallestValue)
+      if(REALArray[i] < smallestValue)
       {
-         smallestValue=doubleArray[i];
+         smallestValue=REALArray[i];
 
          if(smallestValueIndex)
             *smallestValueIndex=i;
       }
    }
 
-} /* End of function "find_largest_smallest_indices_double". */
+} /* End of function "find_largest_smallest_indices_REAL". */
 
 
 void free_array_2D_char(char **array,int numberOfElements)
@@ -54,7 +54,7 @@ void free_array_2D_char(char **array,int numberOfElements)
 } /* End of function "free_array_2D_char" */
 
 
-void free_array_2D_double(double **array,int numberOfElements)
+void free_array_2D_REAL(REAL **array,int numberOfElements)
 {
    int i=0;
 
@@ -114,9 +114,9 @@ void free_array_2D(void **array,int numberOfElements)
 } /* End of function "free_array_2D_char" */
 
 
-void q_sort(double *numbers, int left, int right)
+void q_sort(REAL *numbers, int left, int right)
 {
-   double pivot, l_hold, r_hold;
+   REAL pivot, l_hold, r_hold;
  
    l_hold = left;
  
@@ -171,7 +171,7 @@ void q_sort(double *numbers, int left, int right)
    http://linux.wku.edu/~lamonml/algor/sort/quick.html
 */
 
-void quick_sort(double *numbers, int array_size)
+void quick_sort(REAL *numbers, int array_size)
 {
    q_sort(numbers, 0, array_size - 1);
 
@@ -179,7 +179,7 @@ void quick_sort(double *numbers, int array_size)
 
 
 
-void initialise_double_array(double *array, int numberOfElements, double value)
+void initialise_REAL_array(REAL *array, int numberOfElements, REAL value)
 {
    int i=0;
 
@@ -188,7 +188,7 @@ void initialise_double_array(double *array, int numberOfElements, double value)
       array[i] = value;
    }
 
-} /* End of function "initialise_double_array" */
+} /* End of function "initialise_REAL_array" */
 
 
 void initialise_int_array(int *array, int numberOfElements, int value)

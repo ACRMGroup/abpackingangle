@@ -1,20 +1,19 @@
-# include "bioplib/pdb.h"
-# include "arrays.h"
+#include "arrays.h"
 
 #ifndef REGRESSION 
 #define REGRESSION
 
-void draw_regression_line(double **coordinates,
-                          double *eigenVector,
+void draw_regression_line(REAL **coordinates,
+                          REAL *eigenVector,
                           int numberOfPoints,
                           char *chainLabel,
                           FILE *wfp);
 
 
-void compute_best_fit_line(double **coordinates,
+void compute_best_fit_line(REAL **coordinates,
 			   int numberOfPoints,
 			   int numberOfDimensions,
-			   double *centroid,
-			   double *eigenVector);
+			   REAL *centroid,
+			   REAL *eigenVector);
 
 #endif

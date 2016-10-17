@@ -18,24 +18,24 @@
    }while(0);
 #endif
 
-void find_largest_smallest_indices_double(double *doubleArray,
+void find_largest_smallest_indices_REAL(REAL *REALArray,
                                           int numberOfElements,
                                           int *smallestValueIndex,
                                           int *largestValueIndex);
 
 void free_array_2D_char(char **array,int numberOfElements);
 
-void free_array_2D_double(double **array,int numberOfElements);
+void free_array_2D_REAL(REAL **array,int numberOfElements);
 
 void free_array_2D_int(int **array,int numberOfElements);
 
 void free_array_2D(void **array,int numberOfElements);
 
-void quick_sort(double *numbers, int array_size);
+void quick_sort(REAL *numbers, int array_size);
 
-void q_sort(double *numbers, int left, int right);
+void q_sort(REAL *numbers, int left, int right);
 
-void initialise_double_array(double *array, int numberOfElements, double value);
+void initialise_REAL_array(REAL *array, int numberOfElements, REAL value);
 
 void initialise_int_array(int *array, int numberOfElements, int value);
 

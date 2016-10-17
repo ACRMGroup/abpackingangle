@@ -64,6 +64,8 @@
 
 #include "bioplib/angle.h"
 #include "bioplib/MathUtil.h"
+#include "bioplib/SysDefs.h"
+#include "bioplib/pdb.h"
 #include "matrix.h"
 #include "regression.h"
 
@@ -92,16 +94,16 @@ void create_constant_positions_list(
    char **heavyChainConstantPositionsList,
    int *numberOfConstantHeavyChainPositions);
 int read_coordinates(char **chainConstantPositionsList,
-                     double **coordArray, PDB *firstPointer);
-double calculate_cosine_from_vectors(double *eigenVector1,  
-                                     double *eigenVector2,  
+                     REAL **coordArray, PDB *firstPointer);
+REAL calculate_cosine_from_vectors(REAL *eigenVector1,  
+                                     REAL *eigenVector2,  
                                      int numberOfDimensions,
                                      BOOL isUnitVector);
-void draw_regression_line(double **coordinates,
-			  double *eigenVector,
-			  int numberOfPoints,
-			  char *chainLabel,
-			  FILE *wfp);
+void draw_regression_line(REAL **coordinates,
+                          REAL *eigenVector,
+                          int numberOfPoints,
+                          char *chainLabel,
+                          FILE *wfp);
 void plot(FILE *fp1, FILE *fp2,
           FILE *wfp, BOOL displayOutputFlag, BOOL DisplayStatsFlag,
           char **lightChainConstantPositionsList,
@@ -164,7 +166,7 @@ int main(int argc,char **argv)
       (char **)malloc(MAXPOINTS * sizeof(char *));
 
    create_constant_positions_list(lightChainConstantPositionsList,NULL,
-				  heavyChainConstantPositionsList,NULL);
+                                  heavyChainConstantPositionsList,NULL);
 
    if(PDBCode[0])
       printf("PDB Code: %s\n",PDBCode);
@@ -222,8 +224,8 @@ void get_atom_number_and_insert_code(char *constantPosition,
                                      char *insertCode)
 {
    char *p=NULL,
-	localConstantPosition[8],
-	atomNumberString[8];
+        localConstantPosition[8],
+        atomNumberString[8];
 
    int atomIndex=0,
        insertCodeIndex=0;
@@ -236,10 +238,10 @@ void get_atom_number_and_insert_code(char *constantPosition,
    for(;*p != '\0';p++)
    {
       if( isdigit(*p) )
-	 atomNumberString[atomIndex++]=*p;
+         atomNumberString[atomIndex++]=*p;
       else
       if( isalpha(*p) )
-	 insertCode[insertCodeIndex++]=*p;
+         insertCode[insertCodeIndex++]=*p;
    }
 
    atomNumberString[atomIndex]='\0';
@@ -328,7 +330,7 @@ void create_constant_positions_list(
 
 
 /************************************************************************/
-int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *firstPointer)
+int read_coordinates(char **chainConstantPositionsList,REAL **coordArray,PDB *firstPointer)
 {
    int numberOfConstantChainPositions=0,
        i=0,
@@ -383,11 +385,11 @@ int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *
       if(! p)
          break;
 
-      coordArray[i]=(double *)malloc(3 * sizeof(double));
+      coordArray[i]=(REAL *)malloc(3 * sizeof(REAL));
 
-      coordArray[i][0]=(double)p->x;
-      coordArray[i][1]=(double)p->y;
-      coordArray[i][2]=(double)p->z;
+      coordArray[i][0]=(REAL)p->x;
+      coordArray[i][1]=(REAL)p->y;
+      coordArray[i][2]=(REAL)p->z;
    }
 
    return i;
@@ -396,10 +398,10 @@ int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *
 
 
 /************************************************************************/
-/*>double calculate_cosine_from_vectors(double *vector1,
-                                        double *vector2,
-   	 			        int numberOfDimensions,
-				        BOOL isUnitVector)
+/*>REAL calculate_cosine_from_vectors(REAL *vector1,
+                                        REAL *vector2,
+                                        int numberOfDimensions,
+                                        BOOL isUnitVector)
    ------------------------------------------------------------
 *//**
  \param[in] *vector1            First Vector
@@ -407,15 +409,15 @@ int read_coordinates(char **chainConstantPositionsList,double **coordArray,PDB *
  \param[in] numberOfDimensions  Number of dimensions
  \param[in] isUnitVector        Whether the Vectors are unit vectors.
 */
-double calculate_cosine_from_vectors(double *vector1,
-		  		     double *vector2,
-				     int numberOfDimensions,
-				     BOOL isUnitVector)
+REAL calculate_cosine_from_vectors(REAL *vector1,
+                                     REAL *vector2,
+                                     int numberOfDimensions,
+                                     BOOL isUnitVector)
 {
-   double numerator=0,
-	  denominator=1,
-	  den1=-1,
-	  den2=-1;
+   REAL numerator=0,
+          denominator=1,
+          den1=-1,
+          den2=-1;
 
    int i=0;
 
@@ -433,8 +435,8 @@ double calculate_cosine_from_vectors(double *vector1,
 
       for(i=0;i<numberOfDimensions;i++)
       {
-	 den1+=(vector1[i] * vector1[i]);
-	 den2+=(vector2[i] * vector2[i]);
+         den1+=(vector1[i] * vector1[i]);
+         den2+=(vector2[i] * vector2[i]);
       }
 
       den1 = sqrt(den1);
@@ -442,7 +444,7 @@ double calculate_cosine_from_vectors(double *vector1,
 
       denominator = den1 * den2;
 
-      return ( (double)numerator/denominator);
+      return ( (REAL)numerator/denominator);
    }
 
    return numerator;
@@ -451,15 +453,15 @@ double calculate_cosine_from_vectors(double *vector1,
 
 
 /************************************************************************/
-int verify(double *projection, double *centroid, double *vector,
+int verify(REAL *projection, REAL *centroid, REAL *vector,
            char *string)
 {
-   double xc=0,
+   REAL xc=0,
           yc=0,
           zc=0,
           sq=0,
           delta=0,
-	  den=0;
+          den=0;
 
    xc=projection[0]-centroid[0];
    yc=projection[1]-centroid[1];
@@ -481,26 +483,26 @@ int verify(double *projection, double *centroid, double *vector,
 
 /************************************************************************/
 REAL calculate_torsion_angle(REAL *lightChainVector,
-  	  		     REAL *lightChainCentroid,
-  			     REAL *lightChainPointToBeProjected,
-  			     REAL *heavyChainVector,
-  			     REAL *heavyChainCentroid,
-  			     REAL *heavyChainPointToBeProjected,
+                             REAL *lightChainCentroid,
+                             REAL *lightChainPointToBeProjected,
+                             REAL *heavyChainVector,
+                             REAL *heavyChainCentroid,
+                             REAL *heavyChainPointToBeProjected,
                              BOOL DisplayStatsFlag)
 {
    /* Step 1: Declare variables to be used in the function. */
 
    REAL point[3],
-	  *lightChainProjection,
-	  *heavyChainProjection;
+          *lightChainProjection,
+          *heavyChainProjection;
 
    int i=0;
 
    REAL torsionAngle=0;
 
    /* Step 2: Find two points on the light chain regression line. One
-	      of the points (default) is the centroid. The other point
-	      can be calculated the following way.
+              of the points (default) is the centroid. The other point
+              can be calculated the following way.
    */
 
    point[0]=lightChainCentroid[0] + (100 * lightChainVector[0]);
@@ -508,18 +510,18 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
    point[2]=lightChainCentroid[2] + (100 * lightChainVector[2]);
 
    /* Step 3: Find the point of projection on the light chain. We use
-	      the function blPointLineDistance to do this. The
-	      function syntax is as follows:
+              the function blPointLineDistance to do this. The
+              function syntax is as follows:
 
-	      REAL blPointLineDistance(REAL Px, REAL Py, REAL Pz,
-	                               REAL P1x, REAL P1y, REAL P1z,
-	                               REAL P2x, REAL P2y, REAL P2z,
-	                               REAL *Rx, REAL *Ry, REAL *Rz,
-	                               REAL *frac)
+              REAL blPointLineDistance(REAL Px, REAL Py, REAL Pz,
+                                       REAL P1x, REAL P1y, REAL P1z,
+                                       REAL P2x, REAL P2y, REAL P2z,
+                                       REAL *Rx, REAL *Ry, REAL *Rz,
+                                       REAL *frac)
 
-	      (P1x,P1y,P1z) and (P2x,P2y,P2z) are two points on the
-	      line. Point (Px,Py,Pz) is to be projected onto this
-	      line.
+              (P1x,P1y,P1z) and (P2x,P2y,P2z) are two points on the
+              line. Point (Px,Py,Pz) is to be projected onto this
+              line.
    */
 
    lightChainProjection=(REAL *)malloc(3 * sizeof(REAL));
@@ -570,49 +572,49 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 
       for(i=0;i<3;i++)
       {
-	 printf("\t%f",lightChainCentroid[i]);
+         printf("\t%f",lightChainCentroid[i]);
       }
 
       printf("\nLight chain projection:\t");
 
       for(i=0;i<3;i++)
       {
-	 printf("\t%f",lightChainProjection[i]);
+         printf("\t%f",lightChainProjection[i]);
       }
 
       printf("\nHeavy chain centroid:\t");
 
       for(i=0;i<3;i++)
       {
-	 printf("\t%f",heavyChainCentroid[i]);
+         printf("\t%f",heavyChainCentroid[i]);
       }
 
       printf("\nHeavy chain projection:\t");
 
       for(i=0;i<3;i++)
       {
-	 printf("\t%f",heavyChainProjection[i]);
+         printf("\t%f",heavyChainProjection[i]);
       }
 
       printf("\n\n");
    }
 
    /* Step 5: Now that the projected points have been found, find the
-	      torsion angle using the function "blPhi". The format of
-	      the function is as given below:
+              torsion angle using the function "blPhi". The format of
+              the function is as given below:
 
-	      REAL blPhi(REAL xi,
+              REAL blPhi(REAL xi,
                          REAL yi,
                          REAL zi,
-	                 REAL xj,
-	                 REAL yj,
-	                 REAL zj,
-	                 REAL xk,
-	                 REAL yk,
-	                 REAL zk,
-	                 REAL xl,
-	                 REAL yl,
-	    	         REAL zl)
+                         REAL xj,
+                         REAL yj,
+                         REAL zj,
+                         REAL xk,
+                         REAL yk,
+                         REAL zk,
+                         REAL xl,
+                         REAL yl,
+                         REAL zl)
    */
 
    torsionAngle=blPhi(lightChainProjection[0],
@@ -644,35 +646,27 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
 {
    /* Step 1: Declare variables to be used in the function. */
 
-   double **modifiedLightCoordinates=NULL,
-	  **modifiedHeavyCoordinates=NULL;
-
    int lightChainNumberOfAtoms=0,
-       heavyChainNumberOfAtoms=0;
-
-   int nextPointIndex=-1;
-
-   int i=0;
-
-   PDB *lightFirst=NULL,
-       *heavyFirst=NULL;
-
-   PDB *p=NULL,
-       *prev=NULL;
-
-   double **lightChainConstantPositionCoordinates=NULL,
-	  **heavyChainConstantPositionCoordinates=NULL;
-
-   double *lightEigenVector=NULL,
-	  *heavyEigenVector=NULL;
-
-   int numberOfConstantLightChainPositions=0,
+       heavyChainNumberOfAtoms=0,
+       nextPointIndex=-1,
+       i=0,
+       numberOfConstantLightChainPositions=0,
        numberOfConstantHeavyChainPositions=0;
 
-   double *lightChainCentroid=NULL,
-	  *heavyChainCentroid=NULL;
+   PDB *lightFirst=NULL,
+       *heavyFirst=NULL,
+       *p=NULL,
+       *prev=NULL;
 
-   double torsionAngle=0;
+   REAL **lightChainConstantPositionCoordinates=NULL,
+      **heavyChainConstantPositionCoordinates=NULL,
+      *lightEigenVector=NULL,
+      *heavyEigenVector=NULL,
+      **modifiedLightCoordinates=NULL,
+      **modifiedHeavyCoordinates=NULL,
+      *lightChainCentroid=NULL,
+      *heavyChainCentroid=NULL,
+      torsionAngle=0;
 
    /* Step 2: Read atoms from the light and heavy chain PDB files into
     * two linked lists */
@@ -682,17 +676,17 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
    heavyFirst=blReadPDB(fp2,&heavyChainNumberOfAtoms);
 
    /* Step 3: Read the light and heavy chain constant position
-	      coordinates for CA atoms from the linked lists into
-	      arrays. Function:
+              coordinates for CA atoms from the linked lists into
+              arrays. Function:
 
       int read_coordinates(char **chainConstantPositionsList,
                            char **coordArray,PDB *firstPointer)
    */
 
    lightChainConstantPositionCoordinates = 
-      (double **)malloc(MAXPOINTS * sizeof(double *));
+      (REAL **)malloc(MAXPOINTS * sizeof(REAL *));
    heavyChainConstantPositionCoordinates = 
-      (double **)malloc(MAXPOINTS * sizeof(double *));
+      (REAL **)malloc(MAXPOINTS * sizeof(REAL *));
 
    numberOfConstantLightChainPositions = 
       read_coordinates(lightChainConstantPositionsList,
@@ -705,19 +699,19 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
                        heavyFirst);
 
    /* Step 4: Find mid points of atoms that are structurally
-	      adjacent. This is done to find the best fit line.
+              adjacent. This is done to find the best fit line.
    */
 
    /* Calculation of mid points for the Light chain. */
 
    modifiedLightCoordinates = 
-      (double **)malloc( (numberOfConstantLightChainPositions/2) * 
-                         sizeof(double *) );
+      (REAL **)malloc( (numberOfConstantLightChainPositions/2) * 
+                         sizeof(REAL *) );
    nextPointIndex=numberOfConstantLightChainPositions/2;
 
    for(i=0; i<numberOfConstantLightChainPositions/2; i++)
    {
-      modifiedLightCoordinates[i]=(double *)malloc(3 * sizeof(double));
+      modifiedLightCoordinates[i]=(REAL *)malloc(3 * sizeof(REAL));
 
       modifiedLightCoordinates[i][0] = 
          (lightChainConstantPositionCoordinates[i][0] +
@@ -735,13 +729,13 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
    /* Calculation of mid points for the heavy chain. */
 
    modifiedHeavyCoordinates = 
-      (double **)malloc( (numberOfConstantHeavyChainPositions/2) * 
-                         sizeof(double *) );
+      (REAL **)malloc( (numberOfConstantHeavyChainPositions/2) * 
+                         sizeof(REAL *) );
    nextPointIndex=numberOfConstantHeavyChainPositions/2;
 
    for(i=0; i<numberOfConstantHeavyChainPositions/2; i++)
    {
-      modifiedHeavyCoordinates[i]=(double *)malloc(3 * sizeof(double));
+      modifiedHeavyCoordinates[i]=(REAL *)malloc(3 * sizeof(REAL));
 
       modifiedHeavyCoordinates[i][0] = 
          (heavyChainConstantPositionCoordinates[i][0] +
@@ -762,63 +756,63 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
    /* Step 5: Call the routine to fit the least squares distant line
               for the points.  Format for function that performs this:
 
-      void compute_best_fit_line(double **coordinates,
-      				 int numberOfPoints,
-      				 int numberOfDimensions,
-      				 double *centroid,
-      				 double *eigenVector)
+      void compute_best_fit_line(REAL **coordinates,
+                                 int numberOfPoints,
+                                 int numberOfDimensions,
+                                 REAL *centroid,
+                                 REAL *eigenVector)
    */
 
-   lightEigenVector=(double *)malloc(3 * sizeof(double));
-   heavyEigenVector=(double *)malloc(3 * sizeof(double));
+   lightEigenVector=(REAL *)malloc(3 * sizeof(REAL));
+   heavyEigenVector=(REAL *)malloc(3 * sizeof(REAL));
 
-   lightChainCentroid=(double *)malloc(3 * sizeof(double));
-   heavyChainCentroid=(double *)malloc(3 * sizeof(double));
+   lightChainCentroid=(REAL *)malloc(3 * sizeof(REAL));
+   heavyChainCentroid=(REAL *)malloc(3 * sizeof(REAL));
  
    compute_best_fit_line(modifiedLightCoordinates,
-			 numberOfConstantLightChainPositions/2,
-			 3,
-			 lightChainCentroid,
-			 lightEigenVector);
+                         numberOfConstantLightChainPositions/2,
+                         3,
+                         lightChainCentroid,
+                         lightEigenVector);
 
    compute_best_fit_line(modifiedHeavyCoordinates,
-			 numberOfConstantHeavyChainPositions/2,
-			 3,
-			 heavyChainCentroid,
-			 heavyEigenVector);
+                         numberOfConstantHeavyChainPositions/2,
+                         3,
+                         heavyChainCentroid,
+                         heavyEigenVector);
 
    /* Step 6: Calculate the torsion angle using the following points:
 
-	      Light chain: Light chain centroid and mid point of L35
-	      and L88.
+              Light chain: Light chain centroid and mid point of L35
+              and L88.
 
               Heavy chain: Heavy chain centroid and mid point of L36
-	      and L92.
+              and L92.
 
-	      We use the function "calculate_torsion_angle" whose
-	      syntax is as below:
+              We use the function "calculate_torsion_angle" whose
+              syntax is as below:
 
-	      double calculate_torsion_angle(double *lightChainVector,
-	                                     double *lightChainCentroid,
-	                                     double *lightChainPointToBeProjected,
-	                                     double *heavyChainVector,
-	                                     double *heavyChainCentroid,
-	                                     double *heavyChainPointToBeProjected,
+              REAL calculate_torsion_angle(REAL *lightChainVector,
+                                           REAL *lightChainCentroid,
+                                             REAL *lightChainPointToBeProjected,
+                                             REAL *heavyChainVector,
+                                             REAL *heavyChainCentroid,
+                                             REAL *heavyChainPointToBeProjected,
                                              BOOL   DisplayStatsFlag)
    */
 
    torsionAngle=calculate_torsion_angle(lightEigenVector,
-			                lightChainCentroid,
-			                modifiedLightCoordinates[0],
-			                heavyEigenVector,
-			                heavyChainCentroid,
-			                modifiedHeavyCoordinates[0], DisplayStatsFlag);
+                                        lightChainCentroid,
+                                        modifiedLightCoordinates[0],
+                                        heavyEigenVector,
+                                        heavyChainCentroid,
+                                        modifiedHeavyCoordinates[0], DisplayStatsFlag);
 
    torsionAngle=(torsionAngle * 180)/PI;
 
    /* Step 7: Print the torsion angle and 3write the coordinates of
-	      the imaginary regression line into a PDB file (if
-	      required).
+              the imaginary regression line into a PDB file (if
+              required).
    */
 
    printf("Torsion angle: %f\n",torsionAngle);

@@ -2,7 +2,7 @@
 # include "matrix.h"
 
 
-/* void find_mean(double **points,double *centroid,int numberOfPoints,int numberOfDimensions):
+/* void find_mean(REAL **points,REAL *centroid,int numberOfPoints,int numberOfDimensions):
 
    A function to find the centroid of a given set of points.
 
@@ -13,12 +13,12 @@
 			 are provided. 3 if x,y,z coordinates are provided.
 */
 
-void find_mean(double **points,double *centroid,int numberOfPoints,int numberOfDimensions)
+void find_mean(REAL **points,REAL *centroid,int numberOfPoints,int numberOfDimensions)
 {
    int i=0,
        j=0;
 
-   double total=0;
+   REAL total=0;
 
    for(j=0;j<numberOfDimensions;j++)
    {
@@ -34,16 +34,16 @@ void find_mean(double **points,double *centroid,int numberOfPoints,int numberOfD
 }
 
 
-/* int compute_covariance_matrix(double **x,               // The array with X, Y, Z coordinates.
-                              double **cov,             // Covariance matrix that will be created.
+/* int compute_covariance_matrix(REAL **x,               // The array with X, Y, Z coordinates.
+                              REAL **cov,             // Covariance matrix that will be created.
                               int numberOfPoints,       // Number of points used to calculate matrix.
                               int numberOfDimensions)   // Number of dimensions (3 for points in 3D space).
 
    Function to find the covariance matrix for a given set of points
 */
 
-int compute_covariance_matrix(double **x,		/* The array with X, Y, Z coordinates. */
-			      double **cov,		/* Covariance matrix that will be created. */
+int compute_covariance_matrix(REAL **x,		/* The array with X, Y, Z coordinates. */
+			      REAL **cov,		/* Covariance matrix that will be created. */
 			      int numberOfPoints,	/* Number of points used to calculate matrix. */
 			      int numberOfDimensions)   /* Number of dimensions (3 for points in 3D space). */
 {
@@ -51,10 +51,10 @@ int compute_covariance_matrix(double **x,		/* The array with X, Y, Z coordinates
        j=0,
        start=0;
 
-   double *centroid,
+   REAL *centroid,
 	  total=0;
 
-   centroid=(double *)malloc(numberOfDimensions * sizeof(double));
+   centroid=(REAL *)malloc(numberOfDimensions * sizeof(REAL));
 
    /* Step 1: Calculate the centroid of the given set of points. The centroid is stored as
 	      the last element of the respective row. For example,
@@ -100,11 +100,11 @@ int compute_covariance_matrix(double **x,		/* The array with X, Y, Z coordinates
 	    total+=( (x[start][i] - centroid[i]) * (x[start][j] - centroid[j]) );
 	 }
 
-	 /*cov[i][j]=(double)total/(numberOfPoints); */
-	 /*cov[j][i]=(double)total/(numberOfPoints); */
+	 /*cov[i][j]=(REAL)total/(numberOfPoints); */
+	 /*cov[j][i]=(REAL)total/(numberOfPoints); */
 
-	 cov[i][j]=(double)total;
-	 cov[j][i]=(double)total;
+	 cov[i][j]=(REAL)total;
+	 cov[j][i]=(REAL)total;
       }
    }
 

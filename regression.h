@@ -3,14 +3,14 @@
 #ifndef REGRESSION 
 #define REGRESSION
 
-void draw_regression_line(REAL **coordinates,
+void DrawRegressionLine(REAL **coordinates,
                           REAL *eigenVector,
                           int numberOfPoints,
                           char *chainLabel,
                           FILE *wfp);
 
 
-void compute_best_fit_line(REAL **coordinates,
+void ComputeBestFitLine(REAL **coordinates,
 			   int numberOfPoints,
 			   int numberOfDimensions,
 			   REAL *centroid,

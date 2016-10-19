@@ -15,7 +15,7 @@ IN=8FAB_1.pdb
 #$GETCHAIN L $IN >$LIGHT
 #$GETCHAIN H $IN >$HEAVY
 
-RESULT=`$CTA -l $IN -h $IN | grep Torsion | awk '{print $3}'`
+RESULT=`$CTA -q $IN`
 
 echo $RESULT >8FAB_1_test.out
 

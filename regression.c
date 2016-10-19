@@ -3,8 +3,7 @@
 #include "arrays.h"
 #include "matrix.h"
 
-
-/* void draw_regression_line(REAL **coordinates,     // Coordinates of points used to calculate regression line
+/* void DrawRegressionLine(REAL **coordinates,     // Coordinates of points used to calculate regression line
                              REAL *eigenVector,      // Eigen vector components of the regression line
                              int numberOfPoints,       // Number of points (number of rows in coordinates array).
                              char *chainLabel,         // Chain label when writing to PDB file.
@@ -18,7 +17,7 @@
 */
 
 
-void draw_regression_line(REAL **coordinates,
+void DrawRegressionLine(REAL **coordinates,
                           REAL *eigenVector,
                           int numberOfPoints,
                           char *chainLabel,
@@ -185,11 +184,11 @@ void draw_regression_line(REAL **coordinates,
 }
 
 
-void compute_best_fit_line(REAL **coordinates,
-			   int numberOfPoints,
-			   int numberOfDimensions,
-			   REAL *centroid,
-			   REAL *eigenVector)
+void ComputeBestFitLine(REAL **coordinates,
+                        int numberOfPoints,
+                        int numberOfDimensions,
+                        REAL *centroid,
+                        REAL *eigenVector)
 {
    /* Step 1: Declare the variables */
 

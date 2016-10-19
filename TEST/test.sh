@@ -10,12 +10,12 @@ GETCHAIN=pdbgetchain
 IN=8FAB_1.pdb
 
 # Run program
-LIGHT="$TMPDIR/L$$"
-HEAVY="$TMPDIR/H$$"
-$GETCHAIN L $IN >$LIGHT
-$GETCHAIN H $IN >$HEAVY
+#LIGHT="$TMPDIR/L$$"
+#HEAVY="$TMPDIR/H$$"
+#$GETCHAIN L $IN >$LIGHT
+#$GETCHAIN H $IN >$HEAVY
 
-RESULT=`$CTA -l $LIGHT -h $HEAVY | grep Torsion | awk '{print $3}'`
+RESULT=`$CTA -l $IN -h $IN | grep Torsion | awk '{print $3}'`
 
 echo $RESULT >8FAB_1_test.out
 

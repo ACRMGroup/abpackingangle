@@ -50,7 +50,9 @@
    V1.1   02.06.16 Split from Abhi's code base  By: ACRM
    V1.2   03.10.16 Some tidying up and changed to new Bioplib routines
                    builddist config
-   V1.3   03.10.16 Full tidy up and takes a single PDB file
+   V1.3   03.10.16 Full tidy up
+   V1.4   20.10.16 Removed all global variables
+                   Changed to my style command line parser
 
 *************************************************************************/
 /* Includes
@@ -84,8 +86,6 @@
 /************************************************************************/
 /* Prototypes
 */
-void get_atom_number_and_insert_code(char *constantPosition,
-                                     int *atomNumber, char *insertCode);
 int get_number_of_constant_residue_positions(char **constantPositions);
 void free_pointers(void);
 void create_constant_positions_list(
@@ -109,7 +109,8 @@ void plot(FILE *fp1, FILE *fp2,
           char **lightChainConstantPositionsList,
           char **heavyChainConstantPositionsList);
 void Usage(void);
-BOOL ParseCommandLine(int argc, char **argv, char *lightFile, char *heavyFile, char *pdbCode,
+BOOL ParseCommandLine(int argc, char **argv, char *lightFile, 
+                      char *heavyFile, char *pdbCode,
                       char *vecFile, BOOL *debug);
 
 
@@ -133,8 +134,9 @@ int main(int argc,char **argv)
       return 0;
    }
 
-   if(!ParseCommandLine(argc, argv, LightChainFilename, HeavyChainFilename,
-                        PDBCode, outputFilename, &DisplayStatsFlag))
+   if(!ParseCommandLine(argc, argv, LightChainFilename, 
+                        HeavyChainFilename, PDBCode, outputFilename,
+                        &DisplayStatsFlag))
    {
       Usage();
       return 0;
@@ -207,52 +209,6 @@ int main(int argc,char **argv)
 
 
 /************************************************************************/
-/*>void get_atom_number_and_insert_code(char *constantPosition,
-                                        int *atomNumber, char *insertCode)
-   -----------------------------------------------------------------------
-*//**
-   This function parses the constant position code into the
-   constituent position in integer and insert code in string.
-
-   For example, "L27A" is split into:
-
-   *atomNumber=27
-   *insertCode=A
-*/
-void get_atom_number_and_insert_code(char *constantPosition,
-                                     int *atomNumber,
-                                     char *insertCode)
-{
-   char *p=NULL,
-        localConstantPosition[8],
-        atomNumberString[8];
-
-   int atomIndex=0,
-       insertCodeIndex=0;
-
-   strcpy(localConstantPosition,constantPosition);
-
-   p=localConstantPosition;
-   p++; /* Example - If position is L35, skip the L. */
-
-   for(;*p != '\0';p++)
-   {
-      if( isdigit(*p) )
-         atomNumberString[atomIndex++]=*p;
-      else
-      if( isalpha(*p) )
-         insertCode[insertCodeIndex++]=*p;
-   }
-
-   atomNumberString[atomIndex]='\0';
-   insertCode[insertCodeIndex]='\0';
-
-   *atomNumber=atoi(atomNumberString);
-
-} 
-
-
-/************************************************************************/
 /*>int get_number_of_constant_residue_positions(char **constantPositions)
    ----------------------------------------------------------------------
 *//**
@@ -317,68 +273,40 @@ void create_constant_positions_list(
    strcpy(heavyChainConstantPositionsList[7],"H89");
 
    /* Terminate the two lists. */
+   lightChainConstantPositionsList[8][0]='0';
+   heavyChainConstantPositionsList[8][0]='0';
+
+   /* Set the number of positions                                       */
    if(numberOfConstantLightChainPositions)
       *numberOfConstantLightChainPositions=8;
 
    if(numberOfConstantHeavyChainPositions)
       *numberOfConstantHeavyChainPositions=8;
 
-   lightChainConstantPositionsList[8][0]='0';
-   heavyChainConstantPositionsList[8][0]='0';
-
 } /* End of function "create_constant_positions_list". */
 
 
 /************************************************************************/
-int read_coordinates(char **chainConstantPositionsList,REAL **coordArray,PDB *firstPointer)
+int read_coordinates(char **chainConstantPositionsList,REAL **coordArray,
+                     PDB *firstPointer)
 {
    int numberOfConstantChainPositions=0,
-       i=0,
-       atomNumber1=0;
-
-   char insertCode1[8];
+       i=0;
 
    PDB *p=NULL;
-
-   /* Format of function:
-      void get_number_of_constant_residue_positions(
-           char **constantPositions)  
-   */
 
    numberOfConstantChainPositions =
       get_number_of_constant_residue_positions(chainConstantPositionsList);
 
    /* Get the X, Y, Z coordinates of the CA atoms in light and heavy
     * chain constant residue list.
-
-      The format of the PDB structure is:
-
-      typedef struct pdb_entry
-      {
-         REAL x,y,z,occ,bval;
-         struct pdb_entry *next;
-         int  atnum;
-         int  resnum;
-         char record_type[8];
-         char atnam[8];
-         char atnam_raw[8];
-         char resnam[8];
-         char insert[8];
-         char chain[8];
-         char altpos;
-      }  PDB;
-   */
+    */
 
    for(i=0; i<numberOfConstantChainPositions; i++)
    {
       p=firstPointer;
-
-      get_atom_number_and_insert_code(chainConstantPositionsList[i],
-                                      &atomNumber1, insertCode1);
-
-      while(p->resnum != atomNumber1)
-         p=p->next;
-
+      p = blFindResidueSpec(firstPointer, chainConstantPositionsList[i]);
+      
       while(! strstr(p->atnam,"CA ") )
          p=p->next;
 
@@ -638,6 +566,104 @@ REAL calculate_torsion_angle(REAL *lightChainVector,
 
 
 
+
+/************************************************************************/
+/* void Usage(): Shows the usage of the program
+*/
+
+void Usage()
+{
+   printf("\n Usage: abpackingangle <Parameters>\n");
+   printf("\n Parameters are:\n");
+   printf("\n 1. -l <Light chain PDB file>");
+   printf("\n 2. -h <Heavy chain PDB file>");
+   printf("\n 3. -pdb <PDB Code (Optional parameter)>");
+   printf("\n 4. -output <Name of Output file - PDB format file of light and heavy chain with best fit line (Optional parameter)>");
+   printf("\n 4. -stats (Use this option if you would like to display important values calculated by the program)");
+   printf("\n\n");
+
+} /* End of function "Usage". */
+
+
+
+/************************************************************************/
+/*>BOOL ParseCommandLine(int argc, char **argv, char *lightFile, 
+                         char *heavyFile, char *pdbCode, char *vecFile,
+                         BOOL *debug)
+   --------------------------------------------------------------------
+*//**
+
+
+*/
+BOOL ParseCommandLine(int argc, char **argv, char *lightFile, 
+                      char *heavyFile, char *pdbCode, char *vecFile,
+                      BOOL *debug)
+{
+   lightFile[0] = '\0';
+   heavyFile[0] = '\0';
+   pdbCode[0]   = '\0';
+   vecFile[0]   = '\0';
+   
+
+   argc--;
+   argv++;
+   
+   while(argc)
+   {
+      if(argv[0][0] == '-')
+      {
+         switch(argv[0][1])
+         {
+/*
+         case 'h':
+            return(FALSE);
+            break;
+*/
+         case 'l':
+            argc--;
+            argv++;
+            if(!argc)
+               return(FALSE);
+            strncpy(lightFile, argv[0], MAXFILENAME);
+            break;
+         case 'h':
+            argc--;
+            argv++;
+            if(!argc)
+               return(FALSE);
+            strncpy(heavyFile, argv[0], MAXFILENAME);
+            break;
+         case 'p':
+            argc--;
+            argv++;
+            if(!argc)
+               return(FALSE);
+            strncpy(pdbCode, argv[0], MAXPDBCODE);
+            break;
+         case 'o':
+            argc--;
+            argv++;
+            if(!argc)
+               return(FALSE);
+            strncpy(vecFile, argv[0], MAXFILENAME);
+            break;
+         case 's':
+         case 'd':
+            *debug = TRUE;
+            break;
+         default:
+            return(FALSE);
+         }
+      }
+      argc--;
+      argv++;
+   }
+   
+   return(TRUE);
+}
+
+
+
 /************************************************************************/
 void plot(FILE *fp1, FILE *fp2, FILE *wfp,
           BOOL displayOutputFlag, BOOL DisplayStatsFlag,
@@ -647,16 +673,12 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
    /* Step 1: Declare variables to be used in the function. */
 
    int lightChainNumberOfAtoms=0,
-       heavyChainNumberOfAtoms=0,
        nextPointIndex=-1,
        i=0,
        numberOfConstantLightChainPositions=0,
        numberOfConstantHeavyChainPositions=0;
 
-   PDB *lightFirst=NULL,
-       *heavyFirst=NULL,
-       *p=NULL,
-       *prev=NULL;
+   PDB *pdb=NULL;
 
    REAL **lightChainConstantPositionCoordinates=NULL,
       **heavyChainConstantPositionCoordinates=NULL,
@@ -671,9 +693,7 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
    /* Step 2: Read atoms from the light and heavy chain PDB files into
     * two linked lists */
 
-   lightFirst=blReadPDB(fp1,&lightChainNumberOfAtoms);
-
-   heavyFirst=blReadPDB(fp2,&heavyChainNumberOfAtoms);
+   pdb=blReadPDB(fp1,&lightChainNumberOfAtoms);
 
    /* Step 3: Read the light and heavy chain constant position
               coordinates for CA atoms from the linked lists into
@@ -691,12 +711,12 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
    numberOfConstantLightChainPositions = 
       read_coordinates(lightChainConstantPositionsList,
                        lightChainConstantPositionCoordinates,
-                       lightFirst);
+                       pdb);
 
    numberOfConstantHeavyChainPositions = 
       read_coordinates(heavyChainConstantPositionsList,
                        heavyChainConstantPositionCoordinates,
-                       heavyFirst);
+                       pdb);
 
    /* Step 4: Find mid points of atoms that are structurally
               adjacent. This is done to find the best fit line.
@@ -794,11 +814,11 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
 
               REAL calculate_torsion_angle(REAL *lightChainVector,
                                            REAL *lightChainCentroid,
-                                             REAL *lightChainPointToBeProjected,
-                                             REAL *heavyChainVector,
-                                             REAL *heavyChainCentroid,
-                                             REAL *heavyChainPointToBeProjected,
-                                             BOOL   DisplayStatsFlag)
+                                           REAL *lightChainPointToBeProjected,
+                                           REAL *heavyChainVector,
+                                           REAL *heavyChainCentroid,
+                                           REAL *heavyChainPointToBeProjected,
+                                           BOOL   DisplayStatsFlag)
    */
 
    torsionAngle=calculate_torsion_angle(lightEigenVector,
@@ -806,7 +826,8 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
                                         modifiedLightCoordinates[0],
                                         heavyEigenVector,
                                         heavyChainCentroid,
-                                        modifiedHeavyCoordinates[0], DisplayStatsFlag);
+                                        modifiedHeavyCoordinates[0], 
+                                        DisplayStatsFlag);
 
    torsionAngle=(torsionAngle * 180)/PI;
 
@@ -831,14 +852,14 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
                            "Y",
                            wfp);
 
-      blWritePDB(wfp,lightFirst);
-      blWritePDB(wfp,heavyFirst);
+      blWritePDB(wfp,pdb);
    }
 
    printf("------------------------------------\n");
 
    /* Step 8: Release memory allocated to pointers and return to the
-    * calling function */
+    * calling function 
+    */
 
    for(i=0;i<numberOfConstantLightChainPositions/2;i++)
    {
@@ -871,122 +892,7 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
    free(lightChainCentroid);
    free(heavyChainCentroid);
 
-   p=lightFirst;
-   prev=NULL;
-
-   while(p)
-   {
-      prev=p;
-      p=p->next;
-      free(prev);
-   }
-
-   p=heavyFirst;
-   prev=NULL;
-
-   while(p)
-   {
-      prev=p;
-      p=p->next;
-      free(prev);
-   }
-
-   /* Step : Close the file pointer and exit from the function */
+   FREELIST(pdb, PDB);
 
 }
 
-
-/************************************************************************/
-/* void Usage(): Shows the usage of the program
-*/
-
-void Usage()
-{
-   printf("\n Usage: abpackingangle <Parameters>\n");
-   printf("\n Parameters are:\n");
-   printf("\n 1. -l <Light chain PDB file>");
-   printf("\n 2. -h <Heavy chain PDB file>");
-   printf("\n 3. -pdb <PDB Code (Optional parameter)>");
-   printf("\n 4. -output <Name of Output file - PDB format file of light and heavy chain with best fit line (Optional parameter)>");
-   printf("\n 4. -stats (Use this option if you would like to display important values calculated by the program)");
-   printf("\n\n");
-
-} /* End of function "Usage". */
-
-
-
-/************************************************************************/
-/*>BOOL ParseCommandLine(int argc, char **argv, char *lightFile, 
-                         char *heavyFile, char *pdbCode, char *vecFile,
-                         BOOL *debug)
-   --------------------------------------------------------------------
-*//**
-
-
-*/
-BOOL ParseCommandLine(int argc, char **argv, char *lightFile, 
-                      char *heavyFile, char *pdbCode, char *vecFile,
-                      BOOL *debug)
-{
-   lightFile[0] = '\0';
-   heavyFile[0] = '\0';
-   pdbCode[0]   = '\0';
-   vecFile[0]   = '\0';
-   
-
-   argc--;
-   argv++;
-   
-   while(argc)
-   {
-      if(argv[0][0] == '-')
-      {
-         switch(argv[0][1])
-         {
-/*
-         case 'h':
-            return(FALSE);
-            break;
-*/
-         case 'l':
-            argc--;
-            argv++;
-            if(!argc)
-               return(FALSE);
-            strncpy(lightFile, argv[0], MAXFILENAME);
-            break;
-         case 'h':
-            argc--;
-            argv++;
-            if(!argc)
-               return(FALSE);
-            strncpy(heavyFile, argv[0], MAXFILENAME);
-            break;
-         case 'p':
-            argc--;
-            argv++;
-            if(!argc)
-               return(FALSE);
-            strncpy(pdbCode, argv[0], MAXPDBCODE);
-            break;
-         case 'o':
-            argc--;
-            argv++;
-            if(!argc)
-               return(FALSE);
-            strncpy(vecFile, argv[0], MAXFILENAME);
-            break;
-         case 's':
-         case 'd':
-            *debug = TRUE;
-            break;
-         default:
-            return(FALSE);
-         }
-      }
-      argc--;
-      argv++;
-   }
-   
-   return(TRUE);
-}

@@ -104,7 +104,7 @@ void draw_regression_line(REAL **coordinates,
                           int numberOfPoints,
                           char *chainLabel,
                           FILE *wfp);
-void plot(FILE *fp1, FILE *fp2,
+BOOL plot(FILE *fp1, FILE *fp2,
           FILE *wfp, BOOL displayOutputFlag, BOOL DisplayStatsFlag,
           char **lightChainConstantPositionsList,
           char **heavyChainConstantPositionsList);
@@ -199,10 +199,13 @@ int main(int argc,char **argv)
    }
    
 
-   plot(fp1, fp2, wfp,
-        DisplayOutputFlag, DisplayStatsFlag,
-        lightChainConstantPositionsList,
-        heavyChainConstantPositionsList);
+   if(!plot(fp1, fp2, wfp,
+            DisplayOutputFlag, DisplayStatsFlag,
+            lightChainConstantPositionsList,
+            heavyChainConstantPositionsList))
+   {
+      return(1);
+   }
 
    return 0;
 }
@@ -284,45 +287,6 @@ void create_constant_positions_list(
       *numberOfConstantHeavyChainPositions=8;
 
 } /* End of function "create_constant_positions_list". */
-
-
-/************************************************************************/
-int read_coordinates(char **chainConstantPositionsList,REAL **coordArray,
-                     PDB *firstPointer)
-{
-   int numberOfConstantChainPositions=0,
-       i=0;
-
-   PDB *p=NULL;
-
-   numberOfConstantChainPositions =
-      get_number_of_constant_residue_positions(chainConstantPositionsList);
-
-   /* Get the X, Y, Z coordinates of the CA atoms in light and heavy
-    * chain constant residue list.
-    */
-
-   for(i=0; i<numberOfConstantChainPositions; i++)
-   {
-      p=firstPointer;
-      p = blFindResidueSpec(firstPointer, chainConstantPositionsList[i]);
-      
-      while(! strstr(p->atnam,"CA ") )
-         p=p->next;
-
-      if(! p)
-         break;
-
-      coordArray[i]=(REAL *)malloc(3 * sizeof(REAL));
-
-      coordArray[i][0]=(REAL)p->x;
-      coordArray[i][1]=(REAL)p->y;
-      coordArray[i][2]=(REAL)p->z;
-   }
-
-   return i;
-
-} /* End of function "read_coordinates". */
 
 
 /************************************************************************/
@@ -665,7 +629,7 @@ BOOL ParseCommandLine(int argc, char **argv, char *lightFile,
 
 
 /************************************************************************/
-void plot(FILE *fp1, FILE *fp2, FILE *wfp,
+BOOL plot(FILE *fp1, FILE *fp2, FILE *wfp,
           BOOL displayOutputFlag, BOOL DisplayStatsFlag,
           char **lightChainConstantPositionsList,
           char **heavyChainConstantPositionsList)
@@ -708,15 +672,22 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
    heavyChainConstantPositionCoordinates = 
       (REAL **)malloc(MAXPOINTS * sizeof(REAL *));
 
-   numberOfConstantLightChainPositions = 
-      read_coordinates(lightChainConstantPositionsList,
-                       lightChainConstantPositionCoordinates,
-                       pdb);
+   if((numberOfConstantLightChainPositions = 
+       read_coordinates(lightChainConstantPositionsList,
+                        lightChainConstantPositionCoordinates,
+                        pdb))==0)
+   {
+      return(FALSE);
+   }
+   
 
-   numberOfConstantHeavyChainPositions = 
-      read_coordinates(heavyChainConstantPositionsList,
-                       heavyChainConstantPositionCoordinates,
-                       pdb);
+   if((numberOfConstantHeavyChainPositions = 
+       read_coordinates(heavyChainConstantPositionsList,
+                        heavyChainConstantPositionCoordinates,
+                        pdb))==0)
+   {
+      return(FALSE);
+   }
 
    /* Step 4: Find mid points of atoms that are structurally
               adjacent. This is done to find the best fit line.
@@ -894,5 +865,51 @@ void plot(FILE *fp1, FILE *fp2, FILE *wfp,
 
    FREELIST(pdb, PDB);
 
+   return(TRUE);
 }
+
+
+/************************************************************************/
+int read_coordinates(char **chainConstantPositionsList, REAL **coordArray,
+                     PDB *pdb)
+{
+   int numberOfConstantChainPositions=0,
+       i=0;
+
+   PDB *p=NULL;
+
+   numberOfConstantChainPositions =
+      get_number_of_constant_residue_positions(chainConstantPositionsList);
+
+   /* Get the X, Y, Z coordinates of the CA atoms in light and heavy
+    * chain constant residue list.
+    */
+
+   for(i=0; i<numberOfConstantChainPositions; i++)
+   {
+      if((p = blFindResidueSpec(pdb, chainConstantPositionsList[i]))==NULL)
+      {
+         fprintf(stderr,"Error (abpackingangle): Residue not found (%s)\n",
+                 chainConstantPositionsList[i]);
+         return(0);
+      }
+      
+      
+      while(! strstr(p->atnam,"CA ") )
+         p=p->next;
+
+      if(! p)
+         break;
+
+      coordArray[i]=(REAL *)malloc(3 * sizeof(REAL));
+
+      coordArray[i][0]=(REAL)p->x;
+      coordArray[i][1]=(REAL)p->y;
+      coordArray[i][2]=(REAL)p->z;
+   }
+
+   return i;
+
+}
+
 

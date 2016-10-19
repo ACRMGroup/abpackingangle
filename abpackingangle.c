@@ -73,6 +73,7 @@
 #include <stdlib.h>
 
 #include "bioplib/angle.h"
+#include "bioplib/macros.h"
 #include "bioplib/MathUtil.h"
 #include "bioplib/SysDefs.h"
 #include "bioplib/pdb.h"

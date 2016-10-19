@@ -8,7 +8,9 @@ LFILES = bioplib/ReadPDB.o bioplib/fsscanf.o bioplib/pldist.o \
          bioplib/hash.o bioplib/BuildConect.o bioplib/stringutil.o \
          bioplib/IndexPDB.o bioplib/prime.o bioplib/GetPDBChainLabels.o \
          bioplib/PDBHeaderInfo.o bioplib/strcatalloc.o bioplib/GetWord.o \
-         bioplib/throne.o bioplib/array2.o bioplib/stringcat.o bioplib/eigen.o
+         bioplib/throne.o bioplib/array2.o bioplib/stringcat.o \
+	 bioplib/eigen.o bioplib/OpenStdFiles.o bioplib/FindResidueSpec.o \
+	 bioplib/ParseRes.o bioplib/FindAtomInRes.o
 LOPTS = 
 LIBS  = -lm -lxml2
 COPTS = -ansi -Wall -pedantic -DNODEPRECATION

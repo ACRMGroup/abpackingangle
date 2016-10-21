@@ -85,7 +85,7 @@
 /* Defines and macros
 */
 #define MAXFILENAME 160
-#define MAXPDBCODE    8
+#define MAXPDBCODE  160
 #define NUMRESPOS     8 /* Number of residue positions used for the 
                            vectors                                      */
 
@@ -474,6 +474,7 @@ BOOL ParseCmdLine(int argc, char **argv, char *inFile,
             if(!argc)
                return(FALSE);
             strncpy(pdbCode, argv[0], MAXPDBCODE);
+            pdbCode[MAXPDBCODE-1] = '\0';
             break;
          case 'o':
             argc--;
@@ -481,6 +482,7 @@ BOOL ParseCmdLine(int argc, char **argv, char *inFile,
             if(!argc)
                return(FALSE);
             strncpy(vecFile, argv[0], MAXFILENAME);
+            vecFile[MAXPDBCODE-1] = '\0';
             break;
          case 'v':
             *verbose = TRUE;

@@ -419,20 +419,26 @@ REAL calculate_torsion_angle(REAL *lightVector,
    Print a usage message
 
 -  19.10.16 updated for V2.0  By: ACRM
+-  19.06.19 V2.1
 */
 void Usage()
 {
-   fprintf(stderr, "\nabpackingangle V2.0 (c) 2007-2016, UCL, Abhi \
+   fprintf(stderr, "\nabpackingangle V2.1 (c) 2007-2019, UCL, Abhi \
 Raghavan and Andrew Martin\n");
    
    fprintf(stderr, "\nUsage: abpackingangle [-p pdbcode][-o vecfile][-v]\
-[-q] [in.pdb [out.txt]]\n");
+[-q][-d][-f] [in.pdb [out.txt]]\n");
    fprintf(stderr, "           -p Specify a PDB code to be printed with \
 the results\n");
    fprintf(stderr, "           -o Create a PDB file containing the \
 vectors used for angle calculations\n");
    fprintf(stderr, "           -v Verbose\n");
    fprintf(stderr, "           -q Quiet - prints only the angle\n");
+   fprintf(stderr, "           -d Print the distance between centroids as \
+well as the angle\n");
+   fprintf(stderr, "           -f Force angle calculation even when \
+centroid distance > %f\n", (REAL)MAXDIST);
+   
 
    fprintf(stderr, "\nabpackingangle calculates the packing angle \
 between VH and VL domains\n");

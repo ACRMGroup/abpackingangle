@@ -4,11 +4,11 @@
    Program:    abpackingangle
    \file       abpackingangle.c
    
-   \version    V2.0
-   \date       19.10.16
+   \version    V2.1
+   \date       19.06.19
    \brief      Calculate the VH/VL packing angle for an antibody Fv
    
-   \copyright  (c) UCL / Abhi Raghavan and Dr. Andrew C. R. Martin 2007-16
+   \copyright  (c) UCL / Abhi Raghavan and Dr. Andrew C. R. Martin 2007-19
    \author     Dr. Abhi Raghavan and Dr. Andrew C. R. Martin
    \par
                Institute of Structural & Molecular Biology,
@@ -61,6 +61,8 @@
                    Check all memory alocations
                    Use Bioplib routines where possible
                    More general cleanup
+   V2.1   19.06.19 Added distance check between centroids and -d and -f
+                   flags
 
 *************************************************************************/
 /* Includes
@@ -88,7 +90,10 @@
 #define MAXPDBCODE  160
 #define NUMRESPOS     8 /* Number of residue positions used for the 
                            vectors                                      */
-
+#define MAXDIST      25 /* Highest distance seen with an OK (but odd)
+                           structure is 19.636 (1MCO_1). 
+                           Lowest distance seen with a clear wrong pairing
+                           is 32.145 (3J42_2).                          */
 
 /************************************************************************/
 /* Globals
@@ -109,11 +114,13 @@ BOOL Plot(FILE *fpIn, FILE *fpOut,
           FILE *fpVecOut, BOOL displayOutputFlag, BOOL DisplayStatsFlag,
           BOOL quiet,
           char **lightKeyResidues,
-          char **heavyKeyResidues);
+          char **heavyKeyResidues,
+          BOOL printDistance, BOOL force);
 void Usage(void);
 BOOL ParseCmdLine(int argc, char **argv, char *inFile, 
                   char *outFile, char *pdbCode,
-                  char *vecFile, BOOL *verbose, BOOL *quiet);
+                  char *vecFile, BOOL *verbose, BOOL *quiet,
+                  BOOL *printDistance, BOOL *force);
 void VerifyVector(REAL *projection, REAL *centroid, REAL *vector,
                   char *string);
 
@@ -136,7 +143,9 @@ int main(int argc,char **argv)
         PDBCode[MAXPDBCODE];
    BOOL DisplayOutputFlag = FALSE,
         verbose           = FALSE,
-        quiet             = FALSE;
+        quiet             = FALSE,
+        printDistance     = FALSE,
+        force             = FALSE;
 
    char *lightKeyResidues[] = 
         {"L35", "L36", "L37", "L38", "L88", "L87", "L86", "L85", "\0"};
@@ -144,7 +153,7 @@ int main(int argc,char **argv)
         {"H36", "H37", "H38", "H39", "H92", "H91", "H90", "H89", "\0"};
 
    if(!ParseCmdLine(argc, argv, inFilename, outFilename, PDBCode, 
-                    vecFilename, &verbose, &quiet))
+                    vecFilename, &verbose, &quiet, &printDistance, &force))
    {
       Usage();
       return 0;
@@ -176,7 +185,7 @@ vector PDB file: %s\n", vecFilename);
       fprintf(fpOut, "%s: ",PDBCode);
 
    if(!Plot(fpIn, fpOut, fpVecOut, DisplayOutputFlag, verbose, quiet,
-            lightKeyResidues, heavyKeyResidues))
+            lightKeyResidues, heavyKeyResidues, printDistance, force))
    {
       return(1);
    }
@@ -435,16 +444,19 @@ between VH and VL domains\n");
 /************************************************************************/
 /*>BOOL ParseCmdLine(int argc, char **argv, char *inFilename, 
                          char *outFilename, char *pdbCode, char *vecFile,
-                         BOOL *verbose, BOOL *quiet)
+                         BOOL *verbose, BOOL *quiet, BOOL *printDistance,
+                         BOOL *force)
    --------------------------------------------------------------------
 *//**
    Parse the command line. This is a complete rewrite for V2.0
 
 -  19.10.16 Original   By: ACRM
+-  19.06.19 Added -d and -f
 */
 BOOL ParseCmdLine(int argc, char **argv, char *inFile, 
                   char *outFile, char *pdbCode, char *vecFile,
-                  BOOL *verbose, BOOL *quiet)
+                  BOOL *verbose, BOOL *quiet, BOOL *printDistance, 
+                  BOOL *force)
 {
    inFile[0]  = '\0';
    outFile[0] = '\0';
@@ -487,6 +499,12 @@ BOOL ParseCmdLine(int argc, char **argv, char *inFile,
          case 'v':
             *verbose = TRUE;
             break;
+         case 'd':
+            *printDistance = TRUE;
+            break;
+         case 'f':
+            *force = TRUE;
+            break;
          default:
             return(FALSE);
          }
@@ -525,14 +543,16 @@ BOOL ParseCmdLine(int argc, char **argv, char *inFile,
 /************************************************************************/
 /*>BOOL Plot(FILE *fpIn, FILE *fpOut, FILE *fpVecOut,
              BOOL displayOutputFlag, BOOL verbose, BOOL quiet,
-             char **lightKeyResidues, char **heavyKeyResidues)
+             char **lightKeyResidues, char **heavyKeyResidues,
+             BOOL printDistance, BOOL force)
    --------------------------------------------------------
 *//**
    The main routine for doing the calculation
 */
 BOOL Plot(FILE *fpIn, FILE *fpOut, FILE *fpVecOut,
           BOOL displayOutputFlag, BOOL verbose, BOOL quiet,
-          char **lightKeyResidues, char **heavyKeyResidues)
+          char **lightKeyResidues, char **heavyKeyResidues,
+          BOOL printDistance, BOOL force)
 {
    int  lightChainNumberOfAtoms = 0,
         i                       = 0,
@@ -547,7 +567,8 @@ BOOL Plot(FILE *fpIn, FILE *fpOut, FILE *fpVecOut,
         heavyChainCentroid[3],
         **modifiedLightCoordinates = NULL,
         **modifiedHeavyCoordinates = NULL,
-        torsionAngle               = 0;
+        torsionAngle               = 0.0,
+        dist                       = 0.0;
 
    /* Create coordinate arrays                                          */
    if((lightKeyResidueCoords = (REAL **)blArray2D(sizeof(REAL), 
@@ -640,38 +661,57 @@ chain modified coordinates\n");
    /* Calculate the torsion angle using the following points:
 
       Light chain: Light chain centroid and mid point of L35 and L88.
-      Heavy chain: Heavy chain centroid and mid point of L36 and L92.
+      Heavy chain: Heavy chain centroid and mid point of H36 and H92.
    */
 
-   torsionAngle=calculate_torsion_angle(lightEigenVector,
-                                        lightChainCentroid,
-                                        modifiedLightCoordinates[0],
-                                        heavyEigenVector,
-                                        heavyChainCentroid,
-                                        modifiedHeavyCoordinates[0], 
-                                        verbose);
-
-   torsionAngle=(torsionAngle * 180)/PI;
-
-   /* Print the torsion angle and write the coordinates of the
-      imaginary regression line into a PDB file if required.
-   */
-   if(quiet)
+   dist = 0.0;
+   for(i=0; i<3; i++)
    {
-      fprintf(fpOut, "%f\n",torsionAngle);
+      dist += (lightChainCentroid[i] - heavyChainCentroid[i]) *
+              (lightChainCentroid[i] - heavyChainCentroid[i]);
+   }
+   dist = sqrt(dist);
+
+   if((dist <= MAXDIST) || force)
+   {
+      if(printDistance)
+         fprintf(stdout, "Distance: %7.3f   ", dist);
+
+      torsionAngle=calculate_torsion_angle(lightEigenVector,
+                                           lightChainCentroid,
+                                           modifiedLightCoordinates[0],
+                                           heavyEigenVector,
+                                           heavyChainCentroid,
+                                           modifiedHeavyCoordinates[0], 
+                                           verbose);
+
+      torsionAngle=(torsionAngle * 180)/PI;
+
+      /* Print the torsion angle and write the coordinates of the
+         imaginary regression line into a PDB file if required.
+      */
+      if(quiet)
+      {
+         fprintf(fpOut, "%f\n",torsionAngle);
+      }
+      else
+      {
+         fprintf(fpOut, "Packing angle: %f\n",torsionAngle);
+      }
+   
+      if(displayOutputFlag)
+      {
+         DrawRegressionLine(lightKeyResidueCoords, lightEigenVector,
+                            NUMRESPOS, "X", fpVecOut);
+         DrawRegressionLine(heavyKeyResidueCoords, heavyEigenVector,
+                            NUMRESPOS, "Y", fpVecOut);
+         blWritePDB(fpVecOut,pdb);
+      }
    }
    else
    {
-      fprintf(fpOut, "Packing angle: %f\n",torsionAngle);
-   }
-   
-   if(displayOutputFlag)
-   {
-      DrawRegressionLine(lightKeyResidueCoords, lightEigenVector,
-                         NUMRESPOS, "X", fpVecOut);
-      DrawRegressionLine(heavyKeyResidueCoords, heavyEigenVector,
-                         NUMRESPOS, "Y", fpVecOut);
-      blWritePDB(fpVecOut,pdb);
+      fprintf(stderr,"Error (abpackingangle): Light and Heavy chains are \
+too far apart! (%.2fA)\n", dist);
    }
 
    /* Free memory                                                       */
